@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Login;
 use App\Http\Controllers\Logout;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\Register;
 use Illuminate\Support\Facades\Route;
 
@@ -17,4 +18,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/logout', Logout::class)->name('logout');
 
     Route::inertia('/dashboard', 'Dashboard')->name('dashboard');
+    Route::delete('/product/bulk-destroy', [ProductController::class, 'bulkDestroy'])->name('product.bulk-destroy');
+    Route::resource('product', ProductController::class);
 });

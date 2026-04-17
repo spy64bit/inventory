@@ -2,17 +2,49 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\products;
+use App\Models\Product;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $filters = $request->only(['search', 'sort', 'direction', 'per_page']);
+
+        $query = Product::query();
+
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('sku', 'like', '%'.$search.'%');
+            });
+        }
+
+        $sortColumn = $request->input('sort', 'id');
+        $sortDirection = $request->input('direction', 'desc');
+
+        $allowedSorts = ['id', 'sku', 'name', 'cost_price', 'reorder_level', 'created_at'];
+        if (! in_array($sortColumn, $allowedSorts)) {
+            $sortColumn = 'id';
+        }
+        if (! in_array($sortDirection, ['asc', 'desc'])) {
+            $sortDirection = 'desc';
+        }
+
+        $query->orderBy($sortColumn, $sortDirection);
+
+        $perPage = min((int) $request->input('per_page', 10), 100);
+
+        $products = $query->paginate($perPage)->withQueryString();
+
+        return Inertia::render('Product/Index', [
+            'products' => $products,
+            'filters' => $filters,
+        ]);
     }
 
     /**
@@ -34,7 +66,7 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(products $products)
+    public function show(Product $product)
     {
         //
     }
@@ -42,24 +74,53 @@ class ProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(products $products)
+    public function edit(Product $product)
     {
-        //
+        return Inertia::render('Product/Edit', [
+            'product' => $product,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, products $products)
+    public function update(Request $request, Product $product)
     {
-        //
+        $validated = $request->validate([
+            'sku' => ['required', 'string', 'max:255', 'unique:products,sku,'.$product->id],
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'cost_price' => ['required', 'numeric', 'min:0'],
+            'reorder_level' => ['required', 'integer', 'min:0'],
+        ]);
+
+        $product->update($validated);
+
+        return redirect()->route('product.index');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(products $products)
+    public function destroy(Product $product)
     {
-        //
+        $product->delete();
+
+        return redirect()->back();
+    }
+
+    /**
+     * Remove multiple resources from storage.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer', 'exists:products,id'],
+        ]);
+
+        Product::whereIn('id', $validated['ids'])->delete();
+
+        return redirect()->back();
     }
 }

@@ -1,12 +1,14 @@
 <script setup>
 import { Link, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { Icon } from '@iconify/vue';
 
 const sidebarOpen = ref(false);
 const page = usePage();
 
 const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1' },
+    { name: 'Dashboard', href: '/dashboard', icon: "ic:twotone-space-dashboard" },
+    { name: 'Products', href: '/product', icon: "mdi:package-variant" },
 ];
 
 function isActive(href) {
@@ -37,10 +39,7 @@ function isActive(href) {
                                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
                             'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                         ]">
-                            <svg class="size-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon" />
-                            </svg>
+                            <Icon :icon="item.icon" width="24" height="24" />
                             {{ item.name }}
                         </Link>
                     </li>
@@ -51,11 +50,7 @@ function isActive(href) {
             <div class="border-t border-gray-200 px-3 py-3">
                 <Link href="/logout" method="post" as="button"
                     class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
-                    <svg class="size-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3-3h-9m9 0l-3-3m3 3l-3 3" />
-                    </svg>
+                    <Icon icon="mdi:logout" width="24" height="24" />
                     Logout
                 </Link>
             </div>
@@ -69,10 +64,7 @@ function isActive(href) {
                 <!-- Mobile menu button -->
                 <button class="lg:hidden -ml-1 rounded-md p-1.5 text-gray-500 hover:text-gray-900 transition-colors"
                     @click="sidebarOpen = !sidebarOpen">
-                    <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                    </svg>
+                    <Icon icon="mdi:menu" width="24" height="24" />
                 </button>
             </header>
 
