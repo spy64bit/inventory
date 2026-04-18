@@ -22,6 +22,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::inertia('/dashboard', 'Dashboard')->name('dashboard');
     Route::delete('/product/bulk-destroy', [ProductController::class, 'bulkDestroy'])->name('product.bulk-destroy');
     Route::resource('product', ProductController::class);
+    Route::delete('/category/bulk-destroy', [CategoryController::class, 'bulkDestroy'])->name('category.bulk-destroy');
     Route::resource('category', CategoryController::class);
     Route::resource('supplier', SupplierController::class);
 
