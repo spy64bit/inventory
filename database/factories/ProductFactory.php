@@ -22,7 +22,8 @@ class ProductFactory extends Factory
             'name' => $this->faker->word(50),
             'description' => $this->faker->sentence(),
             'cost_price' => $this->faker->randomFloat(2, 1, 100),
-            'reorder_level' => $this->faker->numberBetween(1, 50),
+            // 'reorder_level' => $this->faker->numberBetween(1, 50),
+            'reorder_level' => 0,
         ];
     }
 }

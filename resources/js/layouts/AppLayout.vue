@@ -9,6 +9,8 @@ const page = usePage();
 const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: "ic:twotone-space-dashboard" },
     { name: 'Products', href: '/product', icon: "mdi:package-variant" },
+    { name: 'Categories', href: '/category', icon: "mdi:shape" },
+    { name: 'Suppliers', href: '/supplier', icon: "mdi:truck" },
 ];
 
 function isActive(href) {

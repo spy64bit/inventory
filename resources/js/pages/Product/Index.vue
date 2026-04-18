@@ -20,10 +20,10 @@ type Product = {
     updated_at: string;
 };
 
-defineProps < {
-    products: PaginatedData < Product >;
+defineProps<{
+    products: PaginatedData<Product>;
     filters: Filters;
-} > ();
+}>();
 
 const columns: Column[] = [
     { key: 'sku', label: 'SKU', sortable: true },
@@ -31,6 +31,7 @@ const columns: Column[] = [
     { key: 'description', label: 'Description' },
     { key: 'cost_price', label: 'Cost Price', sortable: true },
     { key: 'reorder_level', label: 'Reorder Level', sortable: true },
+    { key: 'stock_quantity', label: 'Stock Quantity', sortable: true },
 ];
 
 function deleteProduct(product: Product) {
@@ -57,7 +58,7 @@ function bulkDelete(ids: number[], clearSelection: () => void) {
 
         <DataTable :columns="columns" :rows="products" :filters="filters" route-prefix="/product">
             <template #cell-cost_price="{ value }">
-                <span class="tabular-nums">${{ Number(value).toFixed(2) }}</span>
+                <span class="tabular-nums">RM {{ Number(value).toFixed(2) }}</span>
             </template>
 
             <template #actions="{ row }">
