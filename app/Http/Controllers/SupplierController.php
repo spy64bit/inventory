@@ -4,23 +4,44 @@ namespace App\Http\Controllers;
 
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class SupplierController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
-    }
+        $filters = $request->only(['search', 'sort', 'direction', 'per_page']);
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $query = Supplier::query();
+
+        if ($search = $request->input('search')) {
+            $query->where('name', 'like', '%'.$search.'%');
+        }
+
+        $sortColumn = $request->input('sort', 'id');
+        $sortDirection = $request->input('direction', 'desc');
+
+        $allowedSorts = ['id', 'name', 'created_at'];
+        if (! in_array($sortColumn, $allowedSorts)) {
+            $sortColumn = 'id';
+        }
+        if (! in_array($sortDirection, ['asc', 'desc'])) {
+            $sortDirection = 'desc';
+        }
+
+        $query->orderBy($sortColumn, $sortDirection);
+
+        $perPage = min((int) $request->input('per_page', 10), 100);
+
+        $suppliers = $query->paginate($perPage)->withQueryString();
+
+        return Inertia::render('Supplier/Index', [
+            'suppliers' => $suppliers,
+            'filters' => $filters,
+        ]);
     }
 
     /**
@@ -28,23 +49,13 @@ class SupplierController extends Controller
      */
     public function store(Request $request)
     {
-        //
-    }
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:supplier,name'],
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Supplier $supplier)
-    {
-        //
-    }
+        Supplier::create($validated);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Supplier $supplier)
-    {
-        //
+        return redirect()->back();
     }
 
     /**
@@ -52,7 +63,13 @@ class SupplierController extends Controller
      */
     public function update(Request $request, Supplier $supplier)
     {
-        //
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:supplier,name,'.$supplier->id],
+        ]);
+
+        $supplier->update($validated);
+
+        return redirect()->back();
     }
 
     /**
@@ -60,6 +77,23 @@ class SupplierController extends Controller
      */
     public function destroy(Supplier $supplier)
     {
-        //
+        $supplier->delete();
+
+        return redirect()->back();
+    }
+
+    /**
+     * Remove multiple resources from storage.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer', 'exists:supplier,id'],
+        ]);
+
+        Supplier::whereIn('id', $validated['ids'])->delete();
+
+        return redirect()->back();
     }
 }

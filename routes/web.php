@@ -24,6 +24,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::resource('product', ProductController::class);
     Route::delete('/category/bulk-destroy', [CategoryController::class, 'bulkDestroy'])->name('category.bulk-destroy');
     Route::resource('category', CategoryController::class);
+    Route::delete('/supplier/bulk-destroy', [SupplierController::class, 'bulkDestroy'])->name('supplier.bulk-destroy');
     Route::resource('supplier', SupplierController::class);
 
 });

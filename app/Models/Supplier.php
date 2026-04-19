@@ -8,5 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable(['name'])]
 class Supplier extends Model
 {
-    //
+    protected $table = 'supplier';
 }
