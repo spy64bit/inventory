@@ -7,14 +7,15 @@ const sidebarOpen = ref(false);
 const page = usePage();
 
 const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: "ic:twotone-space-dashboard" },
+    { name: 'Dashboard', href: '/', icon: "ic:twotone-space-dashboard" },
     { name: 'Products', href: '/product', icon: "mdi:package-variant" },
     { name: 'Categories', href: '/category', icon: "mdi:shape" },
     { name: 'Suppliers', href: '/supplier', icon: "mdi:truck" },
+    { name: 'Stock Movements', href: '/stock-movement', icon: "mdi:swap-horizontal" },
 ];
 
 function isActive(href) {
-    return page.url.startsWith(href);
+    return page.url === href;
 }
 </script>
 

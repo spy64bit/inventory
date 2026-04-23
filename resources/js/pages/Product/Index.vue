@@ -28,7 +28,7 @@ defineProps<{
 const columns: Column[] = [
     { key: 'sku', label: 'SKU', sortable: true },
     { key: 'name', label: 'Name', sortable: true },
-    { key: 'description', label: 'Description' },
+    // { key: 'description', label: 'Description' },
     { key: 'cost_price', label: 'Cost Price', sortable: true },
     { key: 'reorder_level', label: 'Reorder Level', sortable: true },
     { key: 'stock_quantity', label: 'Stock Quantity', sortable: true },
