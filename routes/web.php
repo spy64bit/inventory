@@ -36,4 +36,7 @@ Route::group(['middleware' => 'auth'], function () {
     // stock movement
     Route::get('/stock-movement', [StockMovementController::class, 'index'])->name('stock-movement.index');
 
+    Route::post('/stock-movement/{product}/stock-in', [StockMovementController::class, 'stockIn'])->name('stock-movement.stock-in');
+    Route::post('/stock-movement/{product}/stock-out', [StockMovementController::class, 'stockOut'])->name('stock-movement.stock-out');
+
 });

@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use App\Models\StockMovements;
+use App\Services\StockMovementService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class StockMovementController extends Controller
 {
+    public function __construct(protected StockMovementService $stockMovementService) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -52,5 +56,33 @@ class StockMovementController extends Controller
             'stockMovements' => $stockMovements,
             'filters' => $filters,
         ]);
+    }
+
+    public function stockIn(Request $request, Product $product)
+    {
+        $data = $request->validate([
+            'quantity' => 'required|integer|min:1',
+            'remarks' => 'nullable|string|max:255',
+        ]);
+
+        $this->stockMovementService->stockIn($product, $data['quantity'], $data['remarks'] ?? '');
+
+        return redirect()->back()->with('success', 'Stock added successfully.');
+    }
+
+    public function stockOut(Request $request, Product $product)
+    {
+        $data = $request->validate([
+            'quantity' => 'required|integer|min:1',
+            'remarks' => 'nullable|string|max:255',
+        ]);
+
+        try {
+            $this->stockMovementService->stockOut($product, $data['quantity'], $data['remarks'] ?? '');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->back()->with('success', 'Stock removed successfully.');
     }
 }
