@@ -80,7 +80,9 @@ class StockMovementController extends Controller
         try {
             $this->stockMovementService->stockOut($product, $data['quantity'], $data['remarks'] ?? '');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage());
+            Inertia::flash('error', $e->getMessage());
+
+            return redirect()->back()->withErrors(['quantity' => $e->getMessage()]);
         }
 
         return redirect()->back()->with('success', 'Stock removed successfully.');

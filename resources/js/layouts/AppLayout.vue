@@ -2,6 +2,7 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { Icon } from '@iconify/vue';
+import Toaster from '@/components/Toaster.vue';
 
 const sidebarOpen = ref(false);
 const page = usePage();
@@ -76,5 +77,7 @@ function isActive(href) {
                 <slot />
             </main>
         </div>
+
+        <Toaster />
     </div>
 </template>

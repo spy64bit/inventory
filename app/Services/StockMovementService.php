@@ -13,7 +13,7 @@ class StockMovementService
 
         DB::transaction(function () use ($product, $quantity, $remarks) {
 
-            $product = Product::lockForUpdate()->find($product->id);
+            $product = Product::lockForUpdate()->findOrFail($product->id);
 
             // Create a new stock movement record for stock in
             StockMovements::create([
@@ -34,7 +34,7 @@ class StockMovementService
     {
         DB::transaction(function () use ($product, $quantity, $remarks) {
 
-            $product = Product::lockForUpdate()->find($product->id);
+            $product = Product::lockForUpdate()->findOrFail($product->id);
 
             if ($product->stock_quantity < $quantity) {
                 throw new \Exception('Insufficient stock for product: '.$product->name);

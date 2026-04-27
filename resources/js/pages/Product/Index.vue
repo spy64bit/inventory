@@ -5,7 +5,8 @@ import { router, useForm } from '@inertiajs/vue3';
 import { destroy, bulkDestroy, edit } from '@/actions/App/Http/Controllers/ProductController';
 import { stockIn, stockOut } from '@/actions/App/Http/Controllers/StockMovementController';
 import type { Column, Filters, PaginatedData } from '@/types/data-table';
-import { ref } from 'vue';
+import { toast } from '@/lib/toast';
+import { ref, onMounted } from 'vue';
 
 defineOptions({
     layout: AppLayout,
@@ -23,9 +24,10 @@ type Product = {
     updated_at: string;
 };
 
-defineProps<{
+const props = defineProps<{
     products: PaginatedData<Product>;
     filters: Filters;
+    errors: Object;
 }>();
 
 const columns: Column[] = [
@@ -67,12 +69,38 @@ function submitStockIn(productId: number) {
     showStockInModal.value = false;
 }
 
+function openStockOutModal(product: Product) {
+    stockOutProduct.value = product;
+    showStockOutModal.value = true;
+}
+
+function submitStockOut(productId: number) {
+    form.post(stockOut.url(productId), {
+        onFlash: (message) => {
+            if (message.error) {
+                toast.error(String(message.error));
+            }
+        },
+    });
+    showStockOutModal.value = false;
+}
+
+const isMounted = ref(false);
+onMounted(() => {
+    isMounted.value = true;
+});
+
 </script>
 
 <template>
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mb-6 flex items-center justify-between">
             <h1 class="text-2xl font-bold text-gray-900">Products</h1>
+            <button type="button"
+                class="inline-flex items-center rounded-lg border border-indigo-500 bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                @click="$inertia.visit('/product/create')">
+                Create Product
+            </button>
         </div>
 
         <DataTable :columns="columns" :rows="products" :filters="filters" route-prefix="/product">
@@ -89,7 +117,7 @@ function submitStockIn(productId: number) {
                     </button>
                     <button type="button"
                         class="inline-flex items-center rounded-lg border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50"
-                        @click="stockOut(row.id)">
+                        @click="openStockOutModal(row)">
                         Out
                     </button>
                 </div>
@@ -105,53 +133,99 @@ function submitStockIn(productId: number) {
         </DataTable>
     </div>
 
-    <!-- Stock in -->
-    <Teleport to="body">
-        <div v-if="showStockInModal" class="fixed inset-0 size-full flex items-center justify-center">
-            <div class="z-40 fixed inset-0 size-full bg-black/40" @click="showStockInModal = false"></div>
-            <div class="z-50 py-4 px-6 bg-white rounded-lg">
-                <h2 class="pb-2 font-extrabold">Stock In - {{ stockInProduct?.name }}</h2>
-                <form class="space-y-3" @submit.prevent="submitStockIn(stockInProduct!.id)">
-                    <div>
-                        <label for="name" class="block text-sm font-medium text-gray-700">
-                            Product
-                        </label>
-                        <input id="name" :value="stockInProduct?.name ?? ''" type="text" readonly
-                            class="block w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-gray-700 focus:outline-none" />
-                    </div>
-                    <div>
-                        <label for="quantity" class="block text-sm font-medium text-gray-700">
-                            Quantity
-                        </label>
-                        <input id="quantity" v-model="form.quantity" type="number"
-                            class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none" />
-                    </div>
-                    <div>
-                        <label for="remarks" class="block text-sm font-medium text-gray-700">
-                            Remarks (optional)
-                        </label>
-                        <input id="remarks" v-model="form.remarks" type="text" placeholder="e.g. Sales order #1043"
-                            class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none" />
-                    </div>
-                    <div class="flex gap-x-3 justify-end">
-                        <button type="submit"
-                            class="inline-flex items-center rounded-lg border border-indigo-500 bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                            Submit
-                        </button>
-                        <button type="button"
-                            class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                            @click="showStockInModal = false">
-                            Cancel
-                        </button>
-                    </div>
-                </form>
+    <!-- Create new product -->
+    <!-- <Teleport to="body">
+
+    </Teleport> -->
+
+    <template v-if="isMounted">
+        <!-- Stock in -->
+        <Teleport to="body">
+            <div v-if="showStockInModal" class="fixed inset-0 size-full flex items-center justify-center">
+                <div class="z-40 fixed inset-0 size-full bg-black/40" @click="showStockInModal = false"></div>
+                <div class="z-50 py-4 px-6 bg-white rounded-lg">
+                    <h2 class="pb-2 font-extrabold">Stock In - {{ stockInProduct?.name }}</h2>
+                    <form class="space-y-3" @submit.prevent="submitStockIn(stockInProduct!.id)">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700">
+                                Product
+                            </label>
+                            <input id="name" :value="stockInProduct?.name ?? ''" type="text" readonly
+                                class="block w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-gray-700 focus:outline-none" />
+                        </div>
+                        <div>
+                            <label for="quantity" class="block text-sm font-medium text-gray-700">
+                                Quantity
+                            </label>
+                            <input id="quantity" v-model="form.quantity" type="number"
+                                class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none" />
+                        </div>
+                        <div>
+                            <label for="remarks" class="block text-sm font-medium text-gray-700">
+                                Remarks (optional)
+                            </label>
+                            <input id="remarks" v-model="form.remarks" type="text" placeholder="e.g. Sales order #1043"
+                                class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none" />
+                        </div>
+                        <div class="flex gap-x-3 justify-end">
+                            <button type="submit"
+                                class="inline-flex items-center rounded-lg border border-indigo-500 bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                Submit
+                            </button>
+                            <button type="button"
+                                class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                @click="showStockInModal = false">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
-    </Teleport>
+        </Teleport>
 
-    <!-- Stock out -->
-    <Teleport to="body">
+        <!-- Stock out -->
+        <Teleport to="body">
+            <div v-if="showStockOutModal" class="fixed inset-0 size-full flex items-center justify-center">
+                <div class="z-40 fixed inset-0 size-full bg-black/40" @click="showStockOutModal = false"></div>
+                <div class="z-50 py-4 px-6 bg-white rounded-lg">
+                    <h2 class="pb-2 font-extrabold">Stock Out - {{ stockOutProduct?.name }}</h2>
+                    <form class="space-y-3" @submit.prevent="submitStockOut(stockOutProduct!.id)">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700">
+                                Product
+                            </label>
+                            <input id="name" :value="stockOutProduct?.name ?? ''" type="text" readonly
+                                class="block w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-gray-700 focus:outline-none" />
+                        </div>
+                        <div>
+                            <label for="quantity" class="block text-sm font-medium text-gray-700">
+                                Quantity
+                            </label>
+                            <input id="quantity" v-model="form.quantity" type="number"
+                                class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none" />
+                        </div>
+                        <div>
+                            <label for="remarks" class="block text-sm font-medium text-gray-700">
+                                Remarks (optional)
+                            </label>
+                            <input id="remarks" v-model="form.remarks" type="text" placeholder="e.g. Sales order #1043"
+                                class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none" />
+                        </div>
+                        <div class="flex gap-x-3 justify-end">
+                            <button type="submit"
+                                class="inline-flex items-center rounded-lg border border-indigo-500 bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                Submit
+                            </button>
+                            <button type="button"
+                                class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                @click="showStockOutModal = false">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </Teleport>
+    </template>
 
-
-    </Teleport>
 </template>
