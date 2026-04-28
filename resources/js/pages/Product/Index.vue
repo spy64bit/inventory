@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import DataTable from '@/components/DataTable.vue';
+import AddProductModal from '@/components/product/AddProductModal.vue';
 import { router, useForm } from '@inertiajs/vue3';
 import { destroy, bulkDestroy, edit } from '@/actions/App/Http/Controllers/ProductController';
 import { stockIn, stockOut } from '@/actions/App/Http/Controllers/StockMovementController';
@@ -49,6 +50,7 @@ function bulkDelete(ids: number[], clearSelection: () => void) {
 }
 
 // modal state
+const showNewProductModal = ref(false);
 const showStockInModal = ref(false);
 const showStockOutModal = ref(false);
 const stockInProduct = ref<Product | null>(null);
@@ -85,6 +87,10 @@ function submitStockOut(productId: number) {
     showStockOutModal.value = false;
 }
 
+function openNewProductModal() {
+    showNewProductModal.value = true;
+}
+
 const isMounted = ref(false);
 onMounted(() => {
     isMounted.value = true;
@@ -98,7 +104,7 @@ onMounted(() => {
             <h1 class="text-2xl font-bold text-gray-900">Products</h1>
             <button type="button"
                 class="inline-flex items-center rounded-lg border border-indigo-500 bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                @click="$inertia.visit('/product/create')">
+                @click="openNewProductModal">
                 Create Product
             </button>
         </div>
@@ -133,97 +139,77 @@ onMounted(() => {
         </DataTable>
     </div>
 
-    <!-- Create new product -->
-    <!-- <Teleport to="body">
 
-    </Teleport> -->
 
     <template v-if="isMounted">
+        <AddProductModal v-model:open="showNewProductModal" />
+
+
         <!-- Stock in -->
         <Teleport to="body">
-            <div v-if="showStockInModal" class="fixed inset-0 size-full flex items-center justify-center">
-                <div class="z-40 fixed inset-0 size-full bg-black/40" @click="showStockInModal = false"></div>
-                <div class="z-50 py-4 px-6 bg-white rounded-lg">
-                    <h2 class="pb-2 font-extrabold">Stock In - {{ stockInProduct?.name }}</h2>
+            <div class="modal" :class="{ 'modal-open': showStockInModal }" role="dialog" aria-modal="true">
+                <div class="modal-box max-w-md">
+                    <div class="mb-4 flex items-center gap-2">
+                        <span class="badge badge-success badge-soft">Stock In</span>
+                        <h2 class="text-base font-bold">{{ stockInProduct?.name }}</h2>
+                    </div>
                     <form class="space-y-3" @submit.prevent="submitStockIn(stockInProduct!.id)">
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-gray-700">
-                                Product
-                            </label>
-                            <input id="name" :value="stockInProduct?.name ?? ''" type="text" readonly
-                                class="block w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-gray-700 focus:outline-none" />
-                        </div>
-                        <div>
-                            <label for="quantity" class="block text-sm font-medium text-gray-700">
-                                Quantity
-                            </label>
-                            <input id="quantity" v-model="form.quantity" type="number"
-                                class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none" />
-                        </div>
-                        <div>
-                            <label for="remarks" class="block text-sm font-medium text-gray-700">
-                                Remarks (optional)
-                            </label>
-                            <input id="remarks" v-model="form.remarks" type="text" placeholder="e.g. Sales order #1043"
-                                class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none" />
-                        </div>
-                        <div class="flex gap-x-3 justify-end">
-                            <button type="submit"
-                                class="inline-flex items-center rounded-lg border border-indigo-500 bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                Submit
-                            </button>
-                            <button type="button"
-                                class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                @click="showStockInModal = false">
-                                Cancel
-                            </button>
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">Product</legend>
+                            <input :value="stockInProduct?.name ?? ''" type="text" readonly
+                                class="input input-bordered w-full" />
+                        </fieldset>
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">Quantity</legend>
+                            <input v-model="form.quantity" type="number" min="1" class="input input-bordered w-full" />
+                        </fieldset>
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">Remarks <span class="opacity-60">(optional)</span></legend>
+                            <input v-model="form.remarks" type="text" placeholder="e.g. Sales order #1043"
+                                class="input input-bordered w-full" />
+                        </fieldset>
+                        <div class="modal-action">
+                            <button type="button" class="btn btn-ghost"
+                                @click="showStockInModal = false">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Submit</button>
                         </div>
                     </form>
                 </div>
+                <div class="modal-backdrop" @click="showStockInModal = false"></div>
             </div>
         </Teleport>
 
         <!-- Stock out -->
         <Teleport to="body">
-            <div v-if="showStockOutModal" class="fixed inset-0 size-full flex items-center justify-center">
-                <div class="z-40 fixed inset-0 size-full bg-black/40" @click="showStockOutModal = false"></div>
-                <div class="z-50 py-4 px-6 bg-white rounded-lg">
-                    <h2 class="pb-2 font-extrabold">Stock Out - {{ stockOutProduct?.name }}</h2>
+            <div class="modal" :class="{ 'modal-open': showStockOutModal }" role="dialog" aria-modal="true">
+                <div class="modal-box max-w-md">
+                    <div class="mb-4 flex items-center gap-2">
+                        <span class="badge badge-error badge-soft">Stock Out</span>
+                        <h2 class="text-base font-bold">{{ stockOutProduct?.name }}</h2>
+                    </div>
                     <form class="space-y-3" @submit.prevent="submitStockOut(stockOutProduct!.id)">
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-gray-700">
-                                Product
-                            </label>
-                            <input id="name" :value="stockOutProduct?.name ?? ''" type="text" readonly
-                                class="block w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-gray-700 focus:outline-none" />
-                        </div>
-                        <div>
-                            <label for="quantity" class="block text-sm font-medium text-gray-700">
-                                Quantity
-                            </label>
-                            <input id="quantity" v-model="form.quantity" type="number"
-                                class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none" />
-                        </div>
-                        <div>
-                            <label for="remarks" class="block text-sm font-medium text-gray-700">
-                                Remarks (optional)
-                            </label>
-                            <input id="remarks" v-model="form.remarks" type="text" placeholder="e.g. Sales order #1043"
-                                class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none" />
-                        </div>
-                        <div class="flex gap-x-3 justify-end">
-                            <button type="submit"
-                                class="inline-flex items-center rounded-lg border border-indigo-500 bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                Submit
-                            </button>
-                            <button type="button"
-                                class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                @click="showStockOutModal = false">
-                                Cancel
-                            </button>
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">Product</legend>
+                            <input :value="stockOutProduct?.name ?? ''" type="text" readonly
+                                class="input input-bordered w-full" />
+                        </fieldset>
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">Quantity</legend>
+                            <input v-model="form.quantity" type="number" min="1" class="input input-bordered w-full" />
+                        </fieldset>
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">Remarks <span class="opacity-60">(optional)</span></legend>
+                            <input v-model="form.remarks" type="text" placeholder="e.g. Sales order #1043"
+                                class="input input-bordered w-full" />
+                        </fieldset>
+                        <div class="modal-action">
+                            <button type="button" class="btn btn-ghost"
+                                @click="showStockOutModal = false">Cancel</button>
+                            <button type="submit" class="btn btn-error">Submit</button>
                         </div>
                     </form>
                 </div>
+                <div class="modal-backdrop" @click="showStockOutModal = false"></div>
             </div>
         </Teleport>
     </template>

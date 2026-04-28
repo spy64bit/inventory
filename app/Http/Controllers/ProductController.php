@@ -60,7 +60,17 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'sku' => ['required', 'string', 'max:255', 'unique:products,sku'],
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'cost_price' => ['required', 'numeric', 'min:0'],
+            'reorder_level' => ['required', 'integer', 'min:0'],
+        ]);
+
+        Product::create($validated);
+
+        return redirect()->back()->with('success', 'Product created successfully.');
     }
 
     /**
@@ -96,7 +106,7 @@ class ProductController extends Controller
 
         $product->update($validated);
 
-        return redirect()->route('product.index');
+        return redirect()->back()->with('success', 'Product updated successfully.');
     }
 
     /**
@@ -106,7 +116,7 @@ class ProductController extends Controller
     {
         $product->delete();
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Product deleted successfully.');
     }
 
     /**
@@ -121,6 +131,6 @@ class ProductController extends Controller
 
         Product::whereIn('id', $validated['ids'])->delete();
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Products deleted successfully.');
     }
 }
