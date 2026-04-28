@@ -21,29 +21,25 @@ function isActive(href) {
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-50">
+    <div class="bg-base-200 min-h-screen">
         <!-- Mobile overlay -->
         <div v-if="sidebarOpen" class="fixed inset-0 z-30 bg-black/40 lg:hidden" @click="sidebarOpen = false" />
 
         <!-- Sidebar -->
         <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-            class="fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-white border-r border-gray-200 transition-transform duration-200 ease-in-out lg:translate-x-0">
+            class="bg-base-100 border-base-300 fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r transition-transform duration-200 ease-in-out lg:translate-x-0">
             <!-- Logo -->
-            <div class="flex h-14 items-center gap-2 border-b border-gray-200 px-5">
-                <span class="text-lg font-semibold text-gray-900">Inventory</span>
+            <div class="border-base-300 flex h-14 items-center gap-2 border-b px-5">
+                <span class="text-lg font-semibold">Inventory</span>
             </div>
 
             <!-- Nav -->
-            <nav class="flex-1 overflow-y-auto px-3 py-4">
-                <ul class="space-y-1">
+            <nav class="flex-1 overflow-y-auto p-2">
+                <ul class="menu menu-md w-full gap-1">
                     <li v-for="item in navigation" :key="item.name">
-                        <Link :href="item.href" :class="[
-                            isActive(item.href)
-                                ? 'bg-gray-100 text-gray-900'
-                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                            'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                        ]">
-                            <Icon :icon="item.icon" width="24" height="24" />
+                        <Link :href="item.href" :class="{ 'menu-active': isActive(item.href) }"
+                            @click="sidebarOpen = false">
+                            <Icon :icon="item.icon" width="20" height="20" />
                             {{ item.name }}
                         </Link>
                     </li>
@@ -51,12 +47,15 @@ function isActive(href) {
             </nav>
 
             <!-- User / Logout -->
-            <div class="border-t border-gray-200 px-3 py-3">
-                <Link href="/logout" method="post" as="button"
-                    class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
-                    <Icon icon="mdi:logout" width="24" height="24" />
-                    Logout
-                </Link>
+            <div class="border-base-300 border-t p-2">
+                <ul class="menu menu-md w-full">
+                    <li>
+                        <Link href="/logout" method="post" as="button">
+                            <Icon icon="mdi:logout" width="20" height="20" />
+                            Logout
+                        </Link>
+                    </li>
+                </ul>
             </div>
         </aside>
 
@@ -64,10 +63,9 @@ function isActive(href) {
         <div class="lg:pl-64">
             <!-- Top bar -->
             <header
-                class="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-gray-200 bg-white/80 backdrop-blur px-4 lg:px-6">
+                class="navbar bg-base-100/80 border-base-300 sticky top-0 z-20 min-h-14 border-b backdrop-blur px-4 lg:px-6">
                 <!-- Mobile menu button -->
-                <button class="lg:hidden -ml-1 rounded-md p-1.5 text-gray-500 hover:text-gray-900 transition-colors"
-                    @click="sidebarOpen = !sidebarOpen">
+                <button class="btn btn-ghost btn-square btn-sm lg:hidden" @click="sidebarOpen = !sidebarOpen">
                     <Icon icon="mdi:menu" width="24" height="24" />
                 </button>
             </header>

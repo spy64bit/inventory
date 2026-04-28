@@ -17,10 +17,10 @@ type Supplier = {
     updated_at: string;
 };
 
-const props = defineProps < {
-    suppliers: PaginatedData < Supplier >;
+const props = defineProps<{
+    suppliers: PaginatedData<Supplier>;
     filters: Filters;
-} > ();
+}>();
 
 const columns: Column[] = [
     { key: 'name', label: 'Name', sortable: true },
@@ -30,9 +30,9 @@ const columns: Column[] = [
 // Modal state
 const showFormModal = ref(false);
 const showDeleteModal = ref(false);
-const editingSupplier = ref < Supplier | null > (null);
-const deletingSupplier = ref < Supplier | null > (null);
-const nameInput = ref < HTMLInputElement | null > (null);
+const editingSupplier = ref<Supplier | null>(null);
+const deletingSupplier = ref<Supplier | null>(null);
+const nameInput = ref<HTMLInputElement | null>(null);
 
 const form = useForm({
     name: '',
@@ -112,10 +112,8 @@ function formatDate(dateString: string) {
 <template>
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mb-6 flex items-center justify-between">
-            <h1 class="text-2xl font-bold text-gray-900">Suppliers</h1>
-            <button type="button"
-                class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus:ring-2 focus:ring-indigo-500/50 focus:ring-offset-2 focus:outline-none"
-                @click="openCreateModal">
+            <h1 class="text-2xl font-bold">Suppliers</h1>
+            <button type="button" class="btn btn-primary" @click="openCreateModal">
                 Add Supplier
             </button>
         </div>
@@ -126,23 +124,18 @@ function formatDate(dateString: string) {
             </template>
 
             <template #actions="{ row }">
-                <div class="flex items-center justify-end gap-2">
-                    <button type="button"
-                        class="inline-flex items-center rounded-md px-2.5 py-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-900"
-                        @click="openEditModal(row)">
+                <div class="flex items-center justify-end gap-1">
+                    <button type="button" class="btn btn-sm btn-ghost text-primary" @click="openEditModal(row)">
                         Edit
                     </button>
-                    <button type="button"
-                        class="inline-flex items-center rounded-md px-2.5 py-1.5 text-sm font-medium text-red-600 hover:text-red-900"
-                        @click="openDeleteModal(row)">
+                    <button type="button" class="btn btn-sm btn-ghost text-error" @click="openDeleteModal(row)">
                         Delete
                     </button>
                 </div>
             </template>
 
             <template #bulk-actions="{ selected, clearSelection }">
-                <button type="button"
-                    class="inline-flex items-center rounded-lg border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50"
+                <button type="button" class="btn btn-sm btn-error btn-soft"
                     @click="bulkDelete(selected, clearSelection)">
                     Delete Selected
                 </button>
@@ -152,66 +145,56 @@ function formatDate(dateString: string) {
 
     <!-- Add / Edit Modal -->
     <Teleport to="body">
-        <div v-if="showFormModal" class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="fixed inset-0 bg-black/40" @click="closeFormModal" />
-            <div class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-                <h2 class="text-lg font-semibold text-gray-900">
+        <div class="modal" :class="{ 'modal-open': showFormModal }" role="dialog" aria-modal="true">
+            <div class="modal-box max-w-md">
+                <h2 class="text-lg font-semibold">
                     {{ editingSupplier ? 'Edit Supplier' : 'Add Supplier' }}
                 </h2>
 
                 <form class="mt-4 space-y-4" @submit.prevent="submitForm">
-                    <div>
-                        <label for="modal-name" class="mb-1.5 block text-sm font-medium text-gray-700">
-                            Name
-                        </label>
+                    <fieldset class="fieldset">
+                        <legend class="fieldset-legend">Name</legend>
                         <input id="modal-name" ref="nameInput" v-model="form.name" type="text"
-                            class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
-                            placeholder="Supplier name" />
-                        <p v-if="form.errors.name" class="mt-1.5 text-sm text-red-600">
+                            class="input input-bordered w-full" placeholder="Supplier name" />
+                        <p v-if="form.errors.name" class="text-error mt-1.5 text-sm">
                             {{ form.errors.name }}
                         </p>
-                    </div>
+                    </fieldset>
 
-                    <div class="flex items-center justify-end gap-3 pt-2">
-                        <button type="button"
-                            class="rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-                            @click="closeFormModal">
+                    <div class="modal-action">
+                        <button type="button" class="btn btn-ghost" @click="closeFormModal">
                             Cancel
                         </button>
-                        <button type="submit" :disabled="form.processing"
-                            class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus:ring-2 focus:ring-indigo-500/50 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50">
+                        <button type="submit" class="btn btn-primary" :disabled="form.processing">
                             {{ form.processing ? 'Saving...' : editingSupplier ? 'Save Changes' : 'Create' }}
                         </button>
                     </div>
                 </form>
             </div>
+            <div class="modal-backdrop" @click="closeFormModal"></div>
         </div>
     </Teleport>
 
     <!-- Delete Confirmation Modal -->
     <Teleport to="body">
-        <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center">
-            <div class="fixed inset-0 bg-black/40" @click="closeDeleteModal" />
-            <div class="relative w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
-                <h2 class="text-lg font-semibold text-gray-900">Delete Supplier</h2>
-                <p class="mt-2 text-sm text-gray-600">
+        <div class="modal" :class="{ 'modal-open': showDeleteModal }" role="dialog" aria-modal="true">
+            <div class="modal-box max-w-sm">
+                <h2 class="text-lg font-semibold">Delete Supplier</h2>
+                <p class="mt-2 text-sm opacity-70">
                     Are you sure you want to delete "<span class="font-medium">{{ deletingSupplier?.name }}</span>"?
                     This action cannot be undone.
                 </p>
 
-                <div class="mt-5 flex items-center justify-end gap-3">
-                    <button type="button"
-                        class="rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-                        @click="closeDeleteModal">
+                <div class="modal-action">
+                    <button type="button" class="btn btn-ghost" @click="closeDeleteModal">
                         Cancel
                     </button>
-                    <button type="button"
-                        class="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-500 focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2 focus:outline-none"
-                        @click="confirmDelete">
+                    <button type="button" class="btn btn-error" @click="confirmDelete">
                         Delete
                     </button>
                 </div>
             </div>
+            <div class="modal-backdrop" @click="closeDeleteModal"></div>
         </div>
     </Teleport>
 </template>

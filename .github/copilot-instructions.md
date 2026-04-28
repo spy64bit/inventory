@@ -5,7 +5,7 @@ This repository is a Laravel 13 + Inertia v3 + Vue 3 inventory management applic
 ## Tech Stack
 
 - **Backend:** PHP 8.3, Laravel 13, Inertia Laravel v3, Laravel Wayfinder v0
-- **Frontend:** Vue 3, Inertia Vue v3, TypeScript, Tailwind CSS v4, Vite 8
+- **Frontend:** Vue 3, Inertia Vue v3, TypeScript, Tailwind CSS v4, daisyui v5, Vite 8
 - **Tooling:** Laravel Pint (PHP formatter), ESLint 9, Prettier 3, vue-tsc, PHPUnit 12
 - **Dev Utilities:** Laravel Boost (MCP), Pail (logs), Sail, Tinker
 - **Package manager:** `pnpm` (see `pnpm-lock.yaml`, `pnpm-workspace.yaml`)
@@ -59,8 +59,12 @@ tests/
 - Inertia pages are mounted from `resources/js/pages/` (rendered by `Inertia::render()` or `Route::inertia()`).
 - Use Inertia v3 features: `<Link>`, `<Form>`, `useForm`, `useHttp`, `router`, deferred props (`Inertia::defer()`), optional props (`Inertia::optional()` — **not** `Inertia::lazy()`), `Inertia::merge()`.
 - Vue components must have a single root element.
-- Styling uses Tailwind CSS v4 utility classes; shared merging helpers live in `resources/js/lib/`.
-- Icons via `@iconify/vue`.
+- Styling uses Tailwind CSS v4 utility classes plus **daisyui v5** components (registered via `@plugin "daisyui";` in `resources/css/app.css`). Shared merging helpers live in `resources/js/lib/`.
+- Prefer daisyui components (`btn`, `card`, `table`, `menu`, `navbar`, `input`, `select`, `checkbox`, `join`, `badge`, etc.) before raw Tailwind utilities.
+- Use daisyui semantic color tokens (`bg-base-100`, `bg-base-200`, `border-base-300`, `text-primary`, `bg-primary/10`) instead of hardcoded `gray-*` / `indigo-*` so themes work.
+- For Laravel paginator labels: don't `v-html` raw labels — strip `&laquo;` / `&raquo;` and render `mdi:chevron-left` / `mdi:chevron-right` icons (those glyphs don't render reliably in Instrument Sans).
+- When the user asks for a styling fix, only adjust classes — don't restructure existing markup.
+- Icons via `@iconify/vue` (`<Icon icon="mdi:..." />`).
 
 ## Testing
 
