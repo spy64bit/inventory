@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('cost_price', 10, 2);
             $table->unsignedInteger('reorder_level');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

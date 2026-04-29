@@ -67,6 +67,8 @@ class StockMovementController extends Controller
 
         $this->stockMovementService->stockIn($product, $data['quantity'], $data['remarks'] ?? '');
 
+        Inertia::flash('success', 'Stock added successfully.');
+
         return redirect()->back()->with('success', 'Stock added successfully.');
     }
 
@@ -85,6 +87,10 @@ class StockMovementController extends Controller
             return redirect()->back()->withErrors(['quantity' => $e->getMessage()]);
         }
 
-        return redirect()->back()->with('success', 'Stock removed successfully.');
+        $successMessage = 'Stock updated - '.$data['quantity'].' units deducted.';
+
+        Inertia::flash('success', $successMessage);
+
+        return redirect()->back()->with('success', $successMessage);
     }
 }

@@ -106,7 +106,7 @@ class ProductController extends Controller
 
         $product->update($validated);
 
-        return redirect()->back()->with('success', 'Product updated successfully.');
+        return to_route('product.index')->with('success', 'Product updated successfully.');
     }
 
     /**
@@ -116,7 +116,7 @@ class ProductController extends Controller
     {
         $product->delete();
 
-        return redirect()->back()->with('success', 'Product deleted successfully.');
+        return to_route('product.index')->with('success', 'Product deleted successfully.');
     }
 
     /**
@@ -131,6 +131,6 @@ class ProductController extends Controller
 
         Product::whereIn('id', $validated['ids'])->delete();
 
-        return redirect()->back()->with('success', 'Products deleted successfully.');
+        return to_route('product.index')->with('success', 'Products deleted successfully.');
     }
 }

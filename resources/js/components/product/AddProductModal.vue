@@ -32,13 +32,13 @@ const open = defineModel<boolean>('open', { required: true });
                         </fieldset>
                         <fieldset class="fieldset">
                             <legend class="fieldset-legend">Cost Price</legend>
-                            <input name="cost_price" type="number" step="0.01" min="0" required
+                            <input name="cost_price" type="number" step="0.01" min="0" :value="0" required
                                 class="input input-bordered w-full" />
                             <p v-if="errors.cost_price" class="fieldset-label text-error">{{ errors.cost_price }}</p>
                         </fieldset>
                         <fieldset class="fieldset">
                             <legend class="fieldset-legend">Reorder Level</legend>
-                            <input name="reorder_level" type="number" min="0" required
+                            <input name="reorder_level" type="number" min="0" :value="0" required
                                 class="input input-bordered w-full" />
                             <p v-if="errors.reorder_level" class="fieldset-label text-error">{{ errors.reorder_level }}
                             </p>
