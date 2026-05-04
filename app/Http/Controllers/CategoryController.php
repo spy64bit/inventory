@@ -92,8 +92,22 @@ class CategoryController extends Controller
             'ids.*' => ['required', 'integer', 'exists:category,id'],
         ]);
 
-        Category::whereIn('id', $validated['ids'])->delete();
+        Category::destroy($validated['ids']);
 
         return redirect()->back();
+    }
+
+    public function search(Request $request)
+    {
+        $search = $request->input('q');
+
+        $categories = Category::whereLike('name', '%'.$search.'%')
+            ->orderBy('name')
+            ->limit(10)
+            ->get([
+                'id', 'name',
+            ]);
+
+        return response()->json($categories);
     }
 }

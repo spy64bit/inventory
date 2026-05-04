@@ -1,8 +1,34 @@
 <script setup lang="ts">
-import { Form } from '@inertiajs/vue3';
+import { Form, useHttp } from '@inertiajs/vue3';
 import { store } from '@/routes/product';
+import { onMounted, ref } from 'vue';
 
 const open = defineModel<boolean>('open', { required: true });
+
+const http = useHttp({
+    q: '',
+});
+
+type SelectOption = {
+    id: number;
+    name: string;
+};
+
+const suppliers = ref<SelectOption[]>([]);
+const categories = ref<SelectOption[]>([]);
+
+onMounted(() => {
+    http.get('/api/suppliers').then((response) => {
+        suppliers.value = response as SelectOption[];
+    });
+
+    http.get('/api/categories').then((response) => {
+        categories.value = response as SelectOption[];
+    });
+});
+
+
+
 </script>
 
 <template>
@@ -42,6 +68,29 @@ const open = defineModel<boolean>('open', { required: true });
                                 class="input input-bordered w-full" />
                             <p v-if="errors.reorder_level" class="fieldset-label text-error">{{ errors.reorder_level }}
                             </p>
+                        </fieldset>
+
+                        <!-- supplier -->
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">Supplier</legend>
+                            <select name="supplier_id" class="select select-bordered w-full">
+                                <option disabled value="">Select a supplier</option>
+                                <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
+                                    {{ supplier.name }}
+                                </option>
+                            </select>
+                            <p v-if="errors.supplier_id" class="fieldset-label text-error">{{ errors.supplier_id }}</p>
+                        </fieldset>
+                        <!-- category -->
+                        <fieldset class="fieldset">
+                            <legend class="fieldset-legend">Category</legend>
+                            <select name="category_id" class="select select-bordered w-full">
+                                <option disabled value="">Select a category</option>
+                                <option v-for="category in categories" :key="category.id" :value="category.id">
+                                    {{ category.name }}
+                                </option>
+                            </select>
+                            <p v-if="errors.category_id" class="fieldset-label text-error">{{ errors.category_id }}</p>
                         </fieldset>
                     </div>
 

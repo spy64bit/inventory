@@ -39,4 +39,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/stock-movement/{product}/stock-in', [StockMovementController::class, 'stockIn'])->name('stock-movement.stock-in');
     Route::post('/stock-movement/{product}/stock-out', [StockMovementController::class, 'stockOut'])->name('stock-movement.stock-out');
 
+    Route::group(['prefix' => 'api'], function () {
+        Route::get('/suppliers', [SupplierController::class, 'search'])->name('api.suppliers');
+        Route::get('/categories', [CategoryController::class, 'search'])->name('api.categories');
+    });
+
 });

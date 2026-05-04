@@ -77,7 +77,7 @@ class SupplierController extends Controller
      */
     public function destroy(Supplier $supplier)
     {
-        $supplier->delete();
+        Supplier::destroy($supplier->id);
 
         return redirect()->back();
     }
@@ -92,8 +92,22 @@ class SupplierController extends Controller
             'ids.*' => ['required', 'integer', 'exists:supplier,id'],
         ]);
 
-        Supplier::whereIn('id', $validated['ids'])->delete();
+        Supplier::destroy($validated['ids']);
 
         return redirect()->back();
+    }
+
+    public function search(Request $request)
+    {
+        $search = $request->input('q');
+
+        $suppliers = Supplier::whereLike('name', '%'.$search.'%')
+            ->orderBy('name')
+            ->limit(10)
+            ->get([
+                'id', 'name',
+            ]);
+
+        return response()->json($suppliers);
     }
 }

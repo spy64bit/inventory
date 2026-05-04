@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -66,6 +68,8 @@ class ProductController extends Controller
             'description' => ['nullable', 'string'],
             'cost_price' => ['required', 'numeric', 'min:0'],
             'reorder_level' => ['required', 'integer', 'min:0'],
+            'supplier_id' => ['required', 'integer', 'exists:supplier,id'],
+            'category_id' => ['required', 'integer', 'exists:category,id'],
         ]);
 
         Product::create($validated);
@@ -88,6 +92,8 @@ class ProductController extends Controller
     {
         return Inertia::render('Product/Edit', [
             'product' => $product,
+            'suppliers' => Supplier::all(['id', 'name']),
+            'categories' => Category::all(['id', 'name']),
         ]);
     }
 
@@ -96,17 +102,26 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
+
+        $saveAndClose = $request->query('save_and_close', false);
+
         $validated = $request->validate([
             'sku' => ['required', 'string', 'max:255', 'unique:products,sku,'.$product->id],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'cost_price' => ['required', 'numeric', 'min:0'],
             'reorder_level' => ['required', 'integer', 'min:0'],
+            'supplier_id' => ['required', 'integer', 'exists:supplier,id'],
+            'category_id' => ['required', 'integer', 'exists:category,id'],
         ]);
 
         $product->update($validated);
 
-        return to_route('product.index')->with('success', 'Product updated successfully.');
+        if ($saveAndClose) {
+            return to_route('product.index')->with('success', 'Product updated successfully.');
+        }
+
+        return to_route('product.edit', $product)->with('success', 'Product updated successfully.');
     }
 
     /**
@@ -114,7 +129,7 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        $product->delete();
+        Product::destroy($product->id);
 
         return to_route('product.index')->with('success', 'Product deleted successfully.');
     }
@@ -129,7 +144,7 @@ class ProductController extends Controller
             'ids.*' => ['required', 'integer', 'exists:products,id'],
         ]);
 
-        Product::whereIn('id', $validated['ids'])->delete();
+        Product::destroy($validated['ids']);
 
         return to_route('product.index')->with('success', 'Products deleted successfully.');
     }

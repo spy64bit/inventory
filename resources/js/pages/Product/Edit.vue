@@ -7,6 +7,8 @@ defineOptions({
     layout: AppLayout,
 });
 
+type Option = { id: number; name: string };
+
 const props = defineProps<{
     product: {
         id: number;
@@ -15,7 +17,11 @@ const props = defineProps<{
         description: string | null;
         cost_price: string;
         reorder_level: number;
+        supplier_id: number | null;
+        category_id: number | null;
     };
+    suppliers: Option[];
+    categories: Option[];
 }>();
 
 const form = useForm({
@@ -24,10 +30,13 @@ const form = useForm({
     description: props.product.description ?? '',
     cost_price: props.product.cost_price,
     reorder_level: props.product.reorder_level,
+    supplier_id: props.product.supplier_id,
+    category_id: props.product.category_id,
 });
 
-function submit() {
-    form.put(update.url(props.product.id));
+function submit(saveAndClose = false) {
+
+    form.put(update.url(props.product.id, { query: { save_and_close: saveAndClose ? 1 : 0 } }));
 }
 </script>
 
@@ -41,7 +50,7 @@ function submit() {
                 <h1 class="mt-2 text-2xl font-bold">Edit Product</h1>
             </div>
 
-            <form class="card bg-base-100 border-base-300 space-y-5 border p-6" @submit.prevent="submit">
+            <form class="card bg-base-100 border-base-300 space-y-5 border p-6" @submit.prevent="submit(false)">
                 <fieldset class="fieldset">
                     <legend class="fieldset-legend">SKU</legend>
                     <input id="sku" v-model="form.sku" type="text" class="input input-bordered w-full" />
@@ -87,10 +96,42 @@ function submit() {
                     </fieldset>
                 </div>
 
+                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <fieldset class="fieldset">
+                        <legend class="fieldset-legend">Supplier</legend>
+                        <select id="supplier_id" v-model="form.supplier_id" class="select select-bordered w-full">
+                            <option disabled :value="null">Select a supplier</option>
+                            <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
+                                {{ supplier.name }}
+                            </option>
+                        </select>
+                        <p v-if="form.errors.supplier_id" class="fieldset-label text-error">
+                            {{ form.errors.supplier_id }}
+                        </p>
+                    </fieldset>
+
+                    <fieldset class="fieldset">
+                        <legend class="fieldset-legend">Category</legend>
+                        <select id="category_id" v-model="form.category_id" class="select select-bordered w-full">
+                            <option disabled :value="null">Select a category</option>
+                            <option v-for="category in categories" :key="category.id" :value="category.id">
+                                {{ category.name }}
+                            </option>
+                        </select>
+                        <p v-if="form.errors.category_id" class="fieldset-label text-error">
+                            {{ form.errors.category_id }}
+                        </p>
+                    </fieldset>
+                </div>
+
                 <div class="flex items-center gap-3 pt-2">
                     <button type="submit" class="btn btn-primary" :disabled="form.processing">
                         <span v-if="form.processing" class="loading loading-spinner loading-xs"></span>
-                        {{ form.processing ? 'Saving...' : 'Save Changes' }}
+                        {{ form.processing ? 'Saving...' : 'Save' }}
+                    </button>
+                    <button type="button" class="btn btn-primary" :disabled="form.processing" @click="submit(true)">
+                        <span v-if="form.processing" class="loading loading-spinner loading-xs"></span>
+                        {{ form.processing ? 'Saving...' : 'Save and close' }}
                     </button>
                     <Link :href="index.url()" class="btn btn-ghost">
                         Cancel
