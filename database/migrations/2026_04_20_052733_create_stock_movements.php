@@ -14,8 +14,11 @@ return new class extends Migration
         Schema::create('stock_movements', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->nullable()->constrained()->onDelete('set null');
-            $table->enum('type', ['in', 'out']);
-            $table->unsignedInteger('quantity');
+            $table->enum('type', ['in', 'out', 'adjustment']);
+            $table->decimal('quantity', 10, 2);
+            $table->decimal('unit_cost', 10, 2)->nullable();
+            $table->string('reference_type')->nullable()->comment('e.g., purchase_order, sales_order, adjustment');
+            $table->unsignedBigInteger('reference_id')->nullable();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->text('remarks')->nullable();
             $table->timestamps();
