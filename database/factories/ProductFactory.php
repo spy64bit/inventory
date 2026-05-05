@@ -2,7 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Category;
 use App\Models\Model;
+use App\Models\Supplier;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,13 +19,19 @@ class ProductFactory extends Factory
      */
     public function definition(): array
     {
+        $costPrice = $this->faker->randomFloat(2, 5, 500);
+
         return [
-            'sku' => $this->faker->unique()->bothify('PRD-####'),
-            'name' => $this->faker->word(50),
+            'sku' => 'PRD-'.strtoupper($this->faker->unique()->bothify('??-####')),
+            'name' => $this->faker->words(3, true),
             'description' => $this->faker->sentence(),
-            'cost_price' => $this->faker->randomFloat(2, 1, 100),
-            // 'reorder_level' => $this->faker->numberBetween(1, 50),
-            'reorder_level' => 0,
+            'cost_price' => $costPrice,
+            'selling_price' => round($costPrice * $this->faker->randomFloat(2, 1.1, 2.5), 2),
+            'unit_of_measure' => $this->faker->randomElement(['piece', 'kg', 'liter', 'carton', 'box']),
+            'current_stock' => $this->faker->randomFloat(2, 0, 500),
+            'reorder_level' => $this->faker->randomFloat(2, 5, 50),
+            'category_id' => Category::inRandomOrder()->first()?->id,
+            'supplier_id' => Supplier::inRandomOrder()->first()?->id,
         ];
     }
 }
