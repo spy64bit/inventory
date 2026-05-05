@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\InsufficientStockException;
 use App\Models\Product;
-use App\Models\StockMovements;
+use App\Models\StockMovement;
 use App\Services\StockMovementService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,7 +20,7 @@ class StockMovementController extends Controller
     {
         $filters = $request->only(['search', 'sort', 'direction', 'per_page']);
 
-        $query = StockMovements::query()
+        $query = StockMovement::query()
             ->with(['product:id,sku,name', 'user:id,name']);
 
         if ($search = $request->input('search')) {
@@ -61,11 +62,19 @@ class StockMovementController extends Controller
     public function stockIn(Request $request, Product $product)
     {
         $data = $request->validate([
-            'quantity' => 'required|integer|min:1',
+            'quantity' => 'required|numeric|min:0.01',
+            'unit_cost' => 'required|numeric|min:0',
             'remarks' => 'nullable|string|max:255',
         ]);
 
-        $this->stockMovementService->stockIn($product, $data['quantity'], $data['remarks'] ?? '');
+        $this->stockMovementService->stockIn(
+            $product,
+            $data['quantity'],
+            $data['unit_cost'],
+            'adjustment',
+            null,
+            $data['remarks'] ?? ''
+        );
 
         Inertia::flash('success', 'Stock added successfully.');
 
@@ -75,13 +84,19 @@ class StockMovementController extends Controller
     public function stockOut(Request $request, Product $product)
     {
         $data = $request->validate([
-            'quantity' => 'required|integer|min:1',
+            'quantity' => 'required|numeric|min:0.01',
             'remarks' => 'nullable|string|max:255',
         ]);
 
         try {
-            $this->stockMovementService->stockOut($product, $data['quantity'], $data['remarks'] ?? '');
-        } catch (\Exception $e) {
+            $this->stockMovementService->stockOut(
+                $product,
+                $data['quantity'],
+                'adjustment',
+                null,
+                $data['remarks'] ?? ''
+            );
+        } catch (InsufficientStockException $e) {
             Inertia::flash('error', $e->getMessage());
 
             return redirect()->back()->withErrors(['quantity' => $e->getMessage()]);

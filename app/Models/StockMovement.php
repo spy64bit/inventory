@@ -6,8 +6,17 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['product_id', 'type', 'quantity', 'user_id', 'remarks'])]
-class StockMovements extends Model
+#[Fillable([
+    'product_id',
+    'type',
+    'quantity',
+    'unit_cost',
+    'reference_type',
+    'reference_id',
+    'user_id',
+    'remarks',
+])]
+class StockMovement extends Model
 {
     public function product(): BelongsTo
     {
