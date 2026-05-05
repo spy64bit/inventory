@@ -17,7 +17,10 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->decimal('cost_price', 10, 2);
-            $table->unsignedInteger('reorder_level');
+            $table->decimal('selling_price', 10, 2);
+            $table->string('unit_of_measure')->comment('e.g., piece, kg, liter, carton');
+            $table->decimal('current_stock', 10, 2)->default(0);
+            $table->decimal('reorder_level', 10, 2)->default(0);
             $table->timestamps();
             $table->softDeletes();
         });
