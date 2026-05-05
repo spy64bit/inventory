@@ -11,23 +11,32 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('category', function (Blueprint $table) {
+        Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->unsignedBigInteger('parent_id')->nullable(); // subcategories
+            $table->foreign('parent_id')->references('id')->on('categories')->onDelete('set null');
+            $table->string('slug')->unique(); // for filtering/URLs
             $table->timestamps();
         });
 
-        Schema::create('supplier', function (Blueprint $table) {
+        Schema::create('suppliers', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('email')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('address')->nullable();
+            $table->unsignedInteger('lead_time_days')->default(0); // critical for reorder logic
             $table->timestamps();
+            $table->softDeletes();
         });
 
         // add foreign key to product table
         Schema::table('products', function (Blueprint $table) {
             $table->unsignedBigInteger('category_id')->nullable()->after('reorder_level');
             $table->unsignedBigInteger('supplier_id')->nullable()->after('category_id');
-            $table->unsignedBigInteger('stock_quantity')->default(0)->after('supplier_id');
+            $table->foreign('category_id')->references('id')->on('categories')->onDelete('set null');
+            $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('set null');
         });
     }
 
@@ -37,12 +46,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('products', function (Blueprint $table) {
+            $table->dropForeign(['category_id']);
+            $table->dropForeign(['supplier_id']);
             $table->dropColumn('category_id');
             $table->dropColumn('supplier_id');
-            $table->dropColumn('stock_quantity');
         });
 
-        Schema::dropIfExists('category');
-        Schema::dropIfExists('supplier');
+        Schema::dropIfExists('categories');
+        Schema::dropIfExists('suppliers');
     }
 };
