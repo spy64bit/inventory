@@ -21,7 +21,7 @@ type Product = {
     description: string | null;
     cost_price: string;
     reorder_level: number;
-    stock_quantity: number;
+    current_stock: number;
     created_at: string;
     updated_at: string;
 };
@@ -38,7 +38,7 @@ const columns: Column[] = [
     // { key: 'description', label: 'Description' },
     { key: 'cost_price', label: 'Cost Price', sortable: true },
     { key: 'reorder_level', label: 'Reorder Level', sortable: true },
-    { key: 'stock_quantity', label: 'Stock Quantity', sortable: true },
+    { key: 'current_stock', label: 'Current Stock', sortable: true },
 ];
 
 interface SelectedProduct {
@@ -84,7 +84,7 @@ function confirmDelete() {
         });
     }
 
-    dialogState.value.type = null;
+    closeDialog();
 }
 
 // modal state
@@ -97,16 +97,22 @@ type DialogState = {
 }
 
 const stockProduct = ref<Product | null>(null);
+const dialogOpen = ref(false);
 const dialogState = ref<DialogState>({
     type: null,
     title: null,
     description: null,
 });
 
+function closeDialog() {
+    dialogOpen.value = false;
+}
+
 const showNewProductModal = ref(false);
 
 const form = useForm({
     quantity: 0,
+    unit_cost: 0,
     remarks: '',
 });
 
@@ -142,32 +148,36 @@ function openDialog(type: DialogType, product: Product | null = null) {
     };
 
     stockProduct.value = product;
+    dialogOpen.value = true;
 }
 
 function submitStock(productId: number) {
-
-    let url = null;
-    if (dialogState.value.type === 'stockIn') {
-        url = stockIn.url(productId);
-    } else {
-        url = stockOut.url(productId);
-    }
+    const isStockIn = dialogState.value.type === 'stockIn';
+    const url = isStockIn ? stockIn.url(productId) : stockOut.url(productId);
 
     form.post(url, {
-        onFlash: (message) => {
-            if (message.error) {
-                toast.error(String(message.error));
+        preserveScroll: true,
+        onSuccess: (page) => {
+            const flash = (page.props as { flash?: { success?: string; error?: string } }).flash;
+            if (flash?.error) {
+                toast.error(flash.error);
+            } else if (flash?.success) {
+                toast.success(flash.success);
             }
-            else {
-                toast.success(String(message.success));
+
+            form.reset();
+            stockProduct.value = null;
+            closeDialog();
+        },
+        onError: (errors) => {
+            const first = Object.values(errors)[0];
+            if (first) {
+                toast.error(String(first));
             }
         },
     });
 
-
     form.reset();
-    stockProduct.value = null;
-    dialogState.value.type = null;
 }
 
 function openNewProductModal() {
@@ -219,6 +229,9 @@ onMounted(() => {
                     @click="openBulkDelete(selected, clearSelection)">
                     Delete Selected
                 </button>
+                <!-- clear selected -->
+                <button type="button" class="btn btn-sm btn-ghost" @click="clearSelection">Clear</button>
+
             </template>
         </DataTable>
     </div>
@@ -231,7 +244,8 @@ onMounted(() => {
 
         <Teleport to="body">
             <!-- delete/ bulkdelete confirmation modal -->
-            <div class="modal" :class="{ 'modal-open': ['delete', 'bulkDelete'].includes(dialogState.type ?? '') }"
+            <div class="modal"
+                :class="{ 'modal-open': dialogOpen && ['delete', 'bulkDelete'].includes(dialogState.type ?? '') }"
                 role="dialog" aria-modal="true">
                 <div class="modal-box max-w-md">
                     <div class="mb-4 flex items-center gap-2">
@@ -245,15 +259,16 @@ onMounted(() => {
                         {{ dialogState.description }}
                     </p>
                     <div class="modal-action">
-                        <button type="button" class="btn btn-ghost" @click="dialogState.type = null">Cancel</button>
+                        <button type="button" class="btn btn-ghost" @click="closeDialog">Cancel</button>
                         <button type="button" class="btn btn-error" @click="confirmDelete">Delete</button>
                     </div>
                 </div>
-                <div class="modal-backdrop" @click="dialogState.type = null"></div>
+                <div class="modal-backdrop" @click="closeDialog"></div>
             </div>
 
             <!-- Stock in/ Stock out  -->
-            <div class="modal" :class="{ 'modal-open': ['stockIn', 'stockOut'].includes(dialogState.type ?? '') }"
+            <div class="modal"
+                :class="{ 'modal-open': dialogOpen && ['stockIn', 'stockOut'].includes(dialogState.type ?? '') }"
                 role="dialog" aria-modal="true">
                 <div class="modal-box max-w-md">
                     <div class="mb-4 flex items-center gap-2">
@@ -270,8 +285,17 @@ onMounted(() => {
                         </fieldset>
                         <fieldset class="fieldset">
                             <legend class="fieldset-legend">Quantity</legend>
-                            <input id="quantity" v-model="form.quantity" type="number" min="1"
-                                class="input input-bordered w-full" />
+                            <input id="quantity" v-model="form.quantity" type="number" step="0.01"
+                                :class="['input input-bordered w-full', { 'input-error': form.errors.quantity }]" />
+                            <p v-if="form.errors.quantity" class="text-error mt-1 text-xs">{{ form.errors.quantity }}
+                            </p>
+                        </fieldset>
+                        <fieldset v-if="dialogState.type === 'stockIn'" class="fieldset">
+                            <legend class="fieldset-legend">Unit Cost</legend>
+                            <input id="unit_cost" v-model="form.unit_cost" type="number" min="0" step="0.01"
+                                :class="['input input-bordered w-full', { 'input-error': form.errors.unit_cost }]" />
+                            <p v-if="form.errors.unit_cost" class="text-error mt-1 text-xs">{{ form.errors.unit_cost }}
+                            </p>
                         </fieldset>
                         <fieldset class="fieldset">
                             <legend class="fieldset-legend">Remarks <span class="opacity-60">(optional)</span></legend>
@@ -279,12 +303,16 @@ onMounted(() => {
                                 class="input input-bordered w-full" />
                         </fieldset>
                         <div class="modal-action">
-                            <button type="button" class="btn btn-ghost" @click="dialogState.type = null">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Submit</button>
+                            <button type="button" class="btn btn-ghost" :disabled="form.processing"
+                                @click="closeDialog">Cancel</button>
+                            <button type="submit" class="btn btn-primary" :disabled="form.processing">
+                                <span v-if="form.processing" class="loading loading-spinner loading-xs"></span>
+                                Submit
+                            </button>
                         </div>
                     </form>
                 </div>
-                <div class="modal-backdrop" @click="dialogState.type = null"></div>
+                <div class="modal-backdrop" @click="closeDialog"></div>
             </div>
         </Teleport>
     </template>

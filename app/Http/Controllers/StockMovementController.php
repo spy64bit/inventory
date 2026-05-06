@@ -63,7 +63,7 @@ class StockMovementController extends Controller
     {
         $data = $request->validate([
             'quantity' => 'required|numeric|min:0.01',
-            'unit_cost' => 'required|numeric|min:0',
+            'unit_cost' => 'required|numeric|min:0.01',
             'remarks' => 'nullable|string|max:255',
         ]);
 

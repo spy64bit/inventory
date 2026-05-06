@@ -12,12 +12,19 @@ type StockMovement = {
     product_id: number | null;
     product: { id: number; sku: string; name: string } | null;
     type: 'in' | 'out';
+    reference_type: 'purchase_order' | 'sales_order' | 'adjustment' | null;
     quantity: number;
     user_id: number | null;
     user: { id: number; name: string } | null;
     remarks: string | null;
     created_at: string;
     updated_at: string;
+};
+
+const referenceBadgeClass: Record<string, string> = {
+    purchase_order: 'badge-info badge-soft',
+    sales_order: 'badge-warning badge-soft',
+    adjustment: 'badge-accent badge-soft',
 };
 
 defineProps<{
@@ -28,6 +35,7 @@ defineProps<{
 const columns: Column[] = [
     { key: 'product', label: 'Product' },
     { key: 'type', label: 'Type', sortable: true },
+    { key: 'reference_type', label: 'Reference' },
     { key: 'quantity', label: 'Quantity', sortable: true },
     { key: 'user', label: 'User' },
     { key: 'remarks', label: 'Remarks' },
@@ -63,6 +71,14 @@ function formatDate(value: string): string {
                     :class="value === 'in' ? 'badge-success badge-soft' : 'badge-error badge-soft'">
                     {{ value }}
                 </span>
+            </template>
+
+            <template #cell-reference_type="{ row }">
+                <span v-if="row.reference_type" class="badge badge-sm capitalize"
+                    :class="referenceBadgeClass[row.reference_type]">
+                    {{ row.reference_type.replace('_', ' ') }}
+                </span>
+                <span v-else class="opacity-40">—</span>
             </template>
 
             <template #cell-quantity="{ value }">
