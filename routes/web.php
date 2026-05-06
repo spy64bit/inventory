@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Login;
 use App\Http\Controllers\Logout;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\Register;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SupplierController;
@@ -42,6 +43,17 @@ Route::group(['middleware' => 'auth'], function () {
     Route::group(['prefix' => 'api'], function () {
         Route::get('/suppliers', [SupplierController::class, 'search'])->name('api.suppliers');
         Route::get('/categories', [CategoryController::class, 'search'])->name('api.categories');
+    });
+
+    Route::resource('purchase-orders', PurchaseOrderController::class)
+        ->only(['index', 'create', 'store', 'show']);
+
+    Route::prefix('purchase-orders')->name('purchase-orders.')->group(function () {
+        Route::patch('{purchaseOrder}/approve', [PurchaseOrderController::class, 'approve'])->name('approve');
+        Route::patch('{purchaseOrder}/submit', [PurchaseOrderController::class, 'submit'])->name('submit');
+        Route::patch('{purchaseOrder}/cancel', [PurchaseOrderController::class, 'cancel'])->name('cancel');
+        Route::patch('{purchaseOrder}/close', [PurchaseOrderController::class, 'close'])->name('close');
+        Route::post('{purchaseOrder}/receive', [PurchaseOrderController::class, 'receive'])->name('receive');
     });
 
 });
