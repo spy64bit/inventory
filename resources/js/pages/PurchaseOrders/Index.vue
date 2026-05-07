@@ -1,0 +1,117 @@
+<script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue';
+import DataTable from '@/components/DataTable.vue';
+import { Link } from '@inertiajs/vue3';
+import { Icon } from '@iconify/vue';
+import { create, show } from '@/actions/App/Http/Controllers/PurchaseOrderController';
+import type { Column, Filters, PaginatedData } from '@/types/data-table';
+
+defineOptions({
+    layout: AppLayout,
+});
+
+type RelatedUser = {
+    id: number;
+    name: string;
+} | null;
+
+type PurchaseOrder = {
+    id: number;
+    status: string;
+    notes: string | null;
+    submitted_at: string | null;
+    received_at: string | null;
+    approved_at: string | null;
+    created_at: string;
+    updated_at: string;
+    supplier: { id: number; name: string } | null;
+    created_by: RelatedUser;
+    approved_by: RelatedUser;
+};
+
+defineProps < {
+    purchaseOrders: PaginatedData < PurchaseOrder >;
+    filters: Filters;
+} > ();
+
+const columns: Column[] = [
+    { key: 'id', label: 'PO #', sortable: true },
+    { key: 'supplier', label: 'Supplier' },
+    { key: 'status', label: 'Status', sortable: true },
+    { key: 'created_by', label: 'Created By' },
+    { key: 'created_at', label: 'Created At', sortable: true },
+];
+
+const statusBadgeClass: Record<string, string> = {
+    pending: 'badge-ghost',
+    approved: 'badge-info',
+    submitted: 'badge-primary',
+    partially_received: 'badge-warning',
+    received: 'badge-success',
+    closed: 'badge-neutral',
+    cancelled: 'badge-error',
+};
+
+function formatStatus(status: string): string {
+    return status
+        .split('_')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+}
+
+function formatDate(value: string | null): string {
+    if (!value) {
+        return '—';
+    }
+    return new Date(value).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    });
+}
+</script>
+
+<template>
+    <div class="px-4 py-6 sm:px-6 lg:px-8">
+        <div class="mb-6 flex items-center justify-between">
+            <h1 class="text-2xl font-bold">Purchase Orders</h1>
+            <Link :href="create.url()" class="btn btn-primary">
+                Create Purchase Order
+            </Link>
+        </div>
+
+        <DataTable :columns="columns" :rows="purchaseOrders" :filters="filters" route-prefix="/purchase-orders"
+            :selectable="false">
+            <template #cell-id="{ row }">
+                <span class="font-mono">#{{ row.id }}</span>
+            </template>
+
+            <template #cell-supplier="{ row }">
+                {{ row.supplier?.name ?? '—' }}
+            </template>
+
+            <template #cell-status="{ row }">
+                <span class="badge badge-soft" :class="statusBadgeClass[row.status] ?? 'badge-ghost'">
+                    {{ formatStatus(row.status) }}
+                </span>
+            </template>
+
+            <template #cell-created_by="{ row }">
+                {{ row.created_by?.name ?? '—' }}
+            </template>
+
+            <template #cell-created_at="{ value }">
+                {{ formatDate(value as string) }}
+            </template>
+
+            <template #actions="{ row }">
+                <div class="flex items-center justify-end gap-2">
+                    <Link :href="show.url(row.id)" class="btn btn-sm btn-square btn-ghost" aria-label="View"
+                        title="View">
+                        <Icon icon="heroicons:eye" class="h-4 w-4" />
+                    </Link>
+                </div>
+            </template>
+        </DataTable>
+    </div>
+</template>

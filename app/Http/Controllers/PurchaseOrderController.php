@@ -16,22 +16,49 @@ class PurchaseOrderController extends Controller
         private readonly PurchaseOrderService $purchaseOrderService
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
-        $purchaseOrders = PurchaseOrder::with(['supplier', 'createdBy', 'approvedBy'])
-            ->latest()
-            ->paginate(10);
+        $filters = $request->validate([
+            'search' => 'nullable|string|max:255',
+            'sort' => 'nullable|in:id,status,created_at,submitted_at,received_at',
+            'direction' => 'nullable|in:asc,desc',
+            'per_page' => 'nullable|integer|in:10,25,50',
+        ]);
+
+        $sort = $filters['sort'] ?? 'created_at';
+        $direction = $filters['direction'] ?? 'desc';
+        $perPage = (int) ($filters['per_page'] ?? 10);
+        $search = $filters['search'] ?? null;
+
+        $purchaseOrders = PurchaseOrder::with(['supplier:id,name', 'createdBy:id,name', 'approvedBy:id,name'])
+            ->when($search, function ($query, $search): void {
+                $query->where(function ($q) use ($search): void {
+                    $q->where('id', 'like', "%{$search}%")
+                        ->orWhere('status', 'like', "%{$search}%")
+                        ->orWhere('notes', 'like', "%{$search}%")
+                        ->orWhereHas('supplier', fn ($s) => $s->where('name', 'like', "%{$search}%"));
+                });
+            })
+            ->orderBy($sort, $direction)
+            ->paginate($perPage)
+            ->withQueryString();
 
         return Inertia::render('PurchaseOrders/Index', [
             'purchaseOrders' => $purchaseOrders,
+            'filters' => [
+                'search' => $search,
+                'sort' => $sort,
+                'direction' => $direction,
+                'per_page' => $perPage,
+            ],
         ]);
     }
 
     public function create()
     {
         return Inertia::render('PurchaseOrders/Create', [
-            'suppliers' => Supplier::select('id', 'name')->get(),
-            'products' => Product::select('id', 'name', 'cost_price', 'unit_of_measure')->get(),
+            'suppliers' => Supplier::all(['id', 'name', 'email', 'phone', 'address']),
+            'products' => Product::all(['id', 'sku', 'name', 'cost_price', 'unit_of_measure']),
         ]);
     }
 
@@ -44,6 +71,10 @@ class PurchaseOrderController extends Controller
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity_ordered' => 'required|numeric|min:0.01',
             'items.*.unit_cost' => 'required|numeric|min:0.01',
+        ], [
+            'items.*.product_id.required' => 'Please select a product.',
+            'items.*.product_id.exists' => 'Please select a product.',
+            'items.*.unit_cost.min' => 'Unit cost must be at least 0.01.',
         ]);
 
         $this->purchaseOrderService->create($data);

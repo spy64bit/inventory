@@ -12,6 +12,7 @@ const navigation = [
     { name: 'Products', href: '/product', icon: "mdi:package-variant" },
     { name: 'Categories', href: '/category', icon: "mdi:shape" },
     { name: 'Suppliers', href: '/supplier', icon: "mdi:truck" },
+    { name: 'Purchase Orders', href: '/purchase-orders', icon: "mdi:cart" },
     { name: 'Stock Movements', href: '/stock-movement', icon: "mdi:swap-horizontal" },
 ];
 
