@@ -5,6 +5,7 @@ import { router, useForm } from '@inertiajs/vue3';
 import { store, update, destroy, bulkDestroy } from '@/actions/App/Http/Controllers/SupplierController';
 import type { Column, Filters, PaginatedData } from '@/types/data-table';
 import { ref, nextTick } from 'vue';
+import { Icon } from '@iconify/vue';
 
 defineOptions({
     layout: AppLayout,
@@ -56,8 +57,6 @@ function openEditModal(supplier: Supplier) {
 
 function closeFormModal() {
     showFormModal.value = false;
-    editingSupplier.value = null;
-    form.reset();
     form.clearErrors();
 }
 
@@ -80,7 +79,6 @@ function openDeleteModal(supplier: Supplier) {
 
 function closeDeleteModal() {
     showDeleteModal.value = false;
-    deletingSupplier.value = null;
 }
 
 function confirmDelete() {
@@ -125,11 +123,13 @@ function formatDate(dateString: string) {
 
             <template #actions="{ row }">
                 <div class="flex items-center justify-end gap-1">
-                    <button type="button" class="btn btn-sm btn-ghost text-primary" @click="openEditModal(row)">
-                        Edit
+                    <button type="button" class="btn btn-sm btn-square btn-primary btn-soft"
+                        @click="openEditModal(row)">
+                        <Icon icon="heroicons:pencil" class="w-4 h-4" />
                     </button>
-                    <button type="button" class="btn btn-sm btn-ghost text-error" @click="openDeleteModal(row)">
-                        Delete
+                    <button type="button" class="btn btn-sm btn-square btn-error btn-soft"
+                        @click="openDeleteModal(row)">
+                        <Icon icon="heroicons:trash" class="h-4 w-4" />
                     </button>
                 </div>
             </template>
