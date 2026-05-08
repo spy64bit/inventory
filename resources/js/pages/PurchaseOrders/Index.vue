@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import DataTable from '@/components/DataTable.vue';
 import { Link } from '@inertiajs/vue3';
 import { Icon } from '@iconify/vue';
-import { create, show } from '@/actions/App/Http/Controllers/PurchaseOrderController';
+import { create, edit } from '@/actions/App/Http/Controllers/PurchaseOrderController';
 import type { Column, Filters, PaginatedData } from '@/types/data-table';
 
 defineOptions({
@@ -29,10 +29,10 @@ type PurchaseOrder = {
     approved_by: RelatedUser;
 };
 
-defineProps < {
-    purchaseOrders: PaginatedData < PurchaseOrder >;
+defineProps<{
+    purchaseOrders: PaginatedData<PurchaseOrder>;
     filters: Filters;
-} > ();
+}>();
 
 const columns: Column[] = [
     { key: 'id', label: 'PO #', sortable: true },
@@ -83,7 +83,7 @@ function formatDate(value: string | null): string {
         <DataTable :columns="columns" :rows="purchaseOrders" :filters="filters" route-prefix="/purchase-orders"
             :selectable="false">
             <template #cell-id="{ row }">
-                <span class="font-mono">#{{ row.id }}</span>
+                <Link :href="edit.url(row.id)" class="font-mono">#{{ row.id }}</Link>
             </template>
 
             <template #cell-supplier="{ row }">
@@ -106,9 +106,9 @@ function formatDate(value: string | null): string {
 
             <template #actions="{ row }">
                 <div class="flex items-center justify-end gap-2">
-                    <Link :href="show.url(row.id)" class="btn btn-sm btn-square btn-ghost" aria-label="View"
-                        title="View">
-                        <Icon icon="heroicons:eye" class="h-4 w-4" />
+                    <Link :href="edit.url(row.id)" class="btn btn-sm btn-square btn-ghost" aria-label="Edit"
+                        title="Edit">
+                        <Icon icon="heroicons:pencil" class="h-4 w-4" />
                     </Link>
                 </div>
             </template>

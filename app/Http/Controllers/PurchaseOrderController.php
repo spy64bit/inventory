@@ -83,13 +83,36 @@ class PurchaseOrderController extends Controller
             ->with('success', 'Purchase order created successfully.');
     }
 
-    public function show(PurchaseOrder $purchaseOrder)
+    public function edit(PurchaseOrder $purchaseOrder)
     {
         $purchaseOrder->load(['supplier', 'createdBy', 'approvedBy', 'items.product']);
 
         return Inertia::render('PurchaseOrders/Show', [
             'purchaseOrder' => $purchaseOrder,
+            'suppliers' => Supplier::all(['id', 'name', 'email', 'phone', 'address']),
+            'products' => Product::all(['id', 'sku', 'name', 'cost_price', 'unit_of_measure']),
         ]);
+    }
+
+    public function update(Request $request, PurchaseOrder $purchaseOrder)
+    {
+        $data = $request->validate([
+            'supplier_id' => 'required|exists:suppliers,id',
+            'notes' => 'nullable|string|max:500',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity_ordered' => 'required|numeric|min:0.01',
+            'items.*.unit_cost' => 'required|numeric|min:0.01',
+        ], [
+            'items.*.product_id.required' => 'Please select a product.',
+            'items.*.product_id.exists' => 'Please select a product.',
+            'items.*.unit_cost.min' => 'Unit cost must be at least 0.01.',
+        ]);
+
+        $this->purchaseOrderService->update($purchaseOrder, $data);
+
+        return redirect()->route('purchase-orders.edit', $purchaseOrder)
+            ->with('success', 'Purchase order updated successfully.');
     }
 
     public function approve(PurchaseOrder $purchaseOrder)

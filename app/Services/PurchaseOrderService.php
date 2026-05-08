@@ -40,6 +40,66 @@ class PurchaseOrderService
 
     }
 
+    public function update(PurchaseOrder $purchaseOrder, array $data): PurchaseOrder
+    {
+        if (! in_array($purchaseOrder->status, ['pending', 'approved'])) {
+            throw new InvalidPurchaseOrderStatusException(
+                'Only pending or approved purchase orders can be updated.'
+            );
+        }
+
+        DB::transaction(function () use ($purchaseOrder, $data) {
+            $purchaseOrder->update([
+                'supplier_id' => $data['supplier_id'],
+                'notes' => $data['notes'] ?? null,
+            ]);
+
+            // Delete removed items (only if nothing received yet)
+            $submittedIds = collect($data['items'])
+                ->pluck('id')
+                ->filter()
+                ->values();
+
+            $purchaseOrder->items()
+                ->whereNotIn('id', $submittedIds)
+                ->where('quantity_received', 0)
+                ->delete();
+
+            foreach ($data['items'] as $itemData) {
+                if (isset($itemData['id'])) {
+                    $item = PurchaseOrderItem::where('purchase_order_id', $purchaseOrder->id)
+                        ->where('id', $itemData['id'])
+                        ->firstOrFail();
+
+                    if ($item->quantity_received > 0 && (
+                        $itemData['quantity_ordered'] < $item->quantity_received ||
+                        $itemData['unit_cost'] != $item->unit_cost
+                    )) {
+                        throw new \InvalidArgumentException(
+                            'Cannot reduce quantity ordered below quantity received or change unit cost for items already received.'
+                        );
+                    }
+
+                    $item->update([
+                        'product_id' => $itemData['product_id'],
+                        'quantity_ordered' => $itemData['quantity_ordered'],
+                        'unit_cost' => $itemData['unit_cost'],
+                    ]);
+                } else {
+                    PurchaseOrderItem::create([
+                        'purchase_order_id' => $purchaseOrder->id,
+                        'product_id' => $itemData['product_id'],
+                        'quantity_ordered' => $itemData['quantity_ordered'],
+                        'quantity_received' => 0,
+                        'unit_cost' => $itemData['unit_cost'],
+                    ]);
+                }
+            }
+        });
+
+        return $purchaseOrder->fresh();
+    }
+
     public function approve(PurchaseOrder $po): PurchaseOrder
     {
         if ($po->status !== 'pending') {

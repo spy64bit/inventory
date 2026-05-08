@@ -46,7 +46,7 @@ Route::group(['middleware' => 'auth'], function () {
     });
 
     Route::resource('purchase-orders', PurchaseOrderController::class)
-        ->only(['index', 'create', 'store', 'show']);
+        ->only(['index', 'create', 'store', 'edit', 'update']);
 
     Route::prefix('purchase-orders')->name('purchase-orders.')->group(function () {
         Route::patch('{purchaseOrder}/approve', [PurchaseOrderController::class, 'approve'])->name('approve');
