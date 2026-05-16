@@ -15,18 +15,18 @@ return new class extends Migration
             $table->id();
             $table->foreignId('supplier_id')->constrained()->onDelete('restrict');
             $table->enum('status', [
-                'pending',
+                'draft',
                 'approved',
-                'submitted',
+                'dispatched',
                 'partially_received',
                 'received',
                 'closed',
                 'cancelled',
-            ])->default('pending');
+            ])->default('draft');
             $table->foreignId('created_by')->constrained('users')->onDelete('restrict');
             $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('restrict');
             $table->timestamp('approved_at')->nullable();
-            $table->timestamp('submitted_at')->nullable();
+            $table->timestamp('dispatched_at')->nullable();
             $table->timestamp('received_at')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
