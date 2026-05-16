@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Position;
 use App\Models\Product;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -14,12 +15,29 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
 
+        // admin
         User::factory()->create([
-            'name' => 'John',
-            'email' => 'john@example.com',
+            'name' => 'Admin',
+            'email' => 'admin@example.com',
             'password' => bcrypt('password'),
+            'position' => Position::Admin,
+        ]);
+
+        // manager
+        User::factory()->create([
+            'name' => 'Manager',
+            'email' => 'manager@example.com',
+            'password' => bcrypt('password'),
+            'position' => Position::Manager,
+        ]);
+
+        // staff
+        User::factory()->create([
+            'name' => 'Staff',
+            'email' => 'staff@example.com',
+            'password' => bcrypt('password'),
+            'position' => Position::Staff,
         ]);
 
         $this->call([
