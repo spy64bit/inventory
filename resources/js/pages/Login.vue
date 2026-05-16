@@ -26,7 +26,7 @@ import Login from "@/actions/App/Http/Controllers/Login";
                 Email address
               </label>
               <input id="email" type="email" name="email" autocomplete="email" placeholder="you@example.com" class="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 transition placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-indigo-400 
-                dark:focus:ring-indigo-400/20" value="john@example.com" />
+                dark:focus:ring-indigo-400/20" value="admin@example.com" />
               <p v-if="errors.email" class="mt-1.5 text-sm text-red-600 dark:text-red-400">
                 {{ errors.email }}
               </p>
