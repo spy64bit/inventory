@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\PurchaseOrderStatus;
 use App\Exceptions\InvalidPurchaseOrderStatusException;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
@@ -22,7 +23,7 @@ class PurchaseOrderService
                 'supplier_id' => $data['supplier_id'],
                 'notes' => $data['notes'] ?? null,
                 'created_by' => Auth::id(),
-                'status' => 'pending',
+                'status' => PurchaseOrderStatus::Draft,
             ]);
 
             foreach ($data['items'] as $item) {
@@ -42,9 +43,9 @@ class PurchaseOrderService
 
     public function update(PurchaseOrder $purchaseOrder, array $data): PurchaseOrder
     {
-        if (! in_array($purchaseOrder->status, ['pending', 'approved'])) {
+        if (! in_array($purchaseOrder->status, [PurchaseOrderStatus::Draft, PurchaseOrderStatus::Approved])) {
             throw new InvalidPurchaseOrderStatusException(
-                'Only pending or approved purchase orders can be updated.'
+                'Only draft or approved purchase orders can be updated.'
             );
         }
 
@@ -102,14 +103,14 @@ class PurchaseOrderService
 
     public function approve(PurchaseOrder $po): PurchaseOrder
     {
-        if ($po->status !== 'pending') {
+        if ($po->status !== PurchaseOrderStatus::Draft) {
             throw new InvalidPurchaseOrderStatusException(
-                'Only pending purchase orders can be approved.'
+                'Only draft purchase orders can be approved.'
             );
         }
 
         $po->update([
-            'status' => 'approved',
+            'status' => PurchaseOrderStatus::Approved,
             'approved_by' => Auth::id(),
             'approved_at' => now(),
         ]);
@@ -117,17 +118,17 @@ class PurchaseOrderService
         return $po;
     }
 
-    public function submit(PurchaseOrder $po): PurchaseOrder
+    public function dispatch(PurchaseOrder $po): PurchaseOrder
     {
-        if ($po->status !== 'approved') {
+        if ($po->status !== PurchaseOrderStatus::Approved) {
             throw new InvalidPurchaseOrderStatusException(
-                'Only approved purchase orders can be submitted.'
+                'Only approved purchase orders can be dispatched.'
             );
         }
 
         $po->update([
-            'status' => 'submitted',
-            'submitted_at' => now(),
+            'status' => PurchaseOrderStatus::Dispatched,
+            'dispatched_at' => now(),
         ]);
 
         return $po;
@@ -135,9 +136,9 @@ class PurchaseOrderService
 
     public function receive(PurchaseOrder $po, array $receivedItems): PurchaseOrder
     {
-        if (! in_array($po->status, ['submitted', 'partially_received'])) {
+        if (! in_array($po->status, [PurchaseOrderStatus::Dispatched, PurchaseOrderStatus::PartiallyReceived])) {
             throw new InvalidPurchaseOrderStatusException(
-                'Only submitted or partially received purchase orders can be received.'
+                'Only dispatched or partially received purchase orders can be received.'
             );
         }
 
@@ -174,7 +175,7 @@ class PurchaseOrderService
             // Reload items to get fresh quantity_received values
             $po->load('items');
 
-            $newStatus = $po->isFullyReceived() ? 'received' : 'partially_received';
+            $newStatus = $po->isFullyReceived() ? PurchaseOrderStatus::Received : PurchaseOrderStatus::PartiallyReceived;
 
             $po->update([
                 'status' => $newStatus,
@@ -188,26 +189,33 @@ class PurchaseOrderService
 
     public function cancel(PurchaseOrder $po): PurchaseOrder
     {
-        if (in_array($po->status, ['received', 'closed', 'cancelled'])) {
+        $nonCancellableStatuses = [
+            PurchaseOrderStatus::PartiallyReceived,
+            PurchaseOrderStatus::Received,
+            PurchaseOrderStatus::Closed,
+            PurchaseOrderStatus::Cancelled,
+        ];
+
+        if (in_array($po->status, $nonCancellableStatuses)) {
             throw new InvalidPurchaseOrderStatusException(
                 'This purchase order cannot be cancelled.'
             );
         }
 
-        $po->update(['status' => 'cancelled']);
+        $po->update(['status' => PurchaseOrderStatus::Cancelled]);
 
         return $po;
     }
 
     public function close(PurchaseOrder $po): PurchaseOrder
     {
-        if ($po->status !== 'partially_received') {
+        if ($po->status !== PurchaseOrderStatus::PartiallyReceived) {
             throw new InvalidPurchaseOrderStatusException(
                 'Only partially received purchase orders can be closed.'
             );
         }
 
-        $po->update(['status' => 'closed']);
+        $po->update(['status' => PurchaseOrderStatus::Closed]);
 
         return $po;
     }
