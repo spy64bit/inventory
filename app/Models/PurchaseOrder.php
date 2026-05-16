@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PurchaseOrderStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,13 +15,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'created_by',
     'approved_by',
     'approved_at',
-    'submitted_at',
+    'dispatched_at',
     'received_at',
     'notes',
 ])]
 class PurchaseOrder extends Model
 {
     use SoftDeletes;
+
+    protected function casts(): array
+    {
+        return [
+            'status' => PurchaseOrderStatus::class,
+        ];
+    }
 
     public function supplier(): BelongsTo
     {

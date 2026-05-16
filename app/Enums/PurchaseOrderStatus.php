@@ -1,0 +1,14 @@
+<?php
+
+namespace App\Enums;
+
+enum PurchaseOrderStatus: string
+{
+    case Draft = 'draft';
+    case Approved = 'approved';
+    case Dispatched = 'dispatched';
+    case PartiallyReceived = 'partially_received';
+    case Received = 'received';
+    case Closed = 'closed';
+    case Cancelled = 'cancelled';
+}
