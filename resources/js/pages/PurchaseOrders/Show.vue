@@ -43,9 +43,9 @@ interface User {
 }
 
 type PurchaseOrderStatus =
-    | 'pending'
+    | 'draft'
     | 'approved'
-    | 'submitted'
+    | 'dispatched'
     | 'partially_received'
     | 'received'
     | 'closed'
@@ -56,7 +56,7 @@ interface PurchaseOrder {
     status: PurchaseOrderStatus;
     notes: string | null;
     approved_at: string | null;
-    submitted_at: string | null;
+    dispatched_at: string | null;
     received_at: string | null;
     created_at: string;
     supplier: Supplier;
@@ -69,10 +69,18 @@ const props = defineProps<{
     purchaseOrder: PurchaseOrder;
     suppliers: Supplier[];
     products: Product[];
+    can: {
+        approve: boolean;
+        cancel: boolean;
+        dispatch: boolean;
+        receive: boolean;
+        close: boolean;
+        update: boolean;
+    };
 }>();
 
 const grandTotal = computed(() => {
-    const items = ['pending', 'approved'].includes(props.purchaseOrder.status)
+    const items = ['draft', 'approved'].includes(props.purchaseOrder.status)
         ? editForm.items
         : props.purchaseOrder.items;
 
@@ -83,9 +91,9 @@ const grandTotal = computed(() => {
 });
 
 const PO_STATUS_BADGE = {
-    pending: 'badge-ghost',
+    draft: 'badge-ghost',
     approved: 'badge-info',
-    submitted: 'badge-primary',
+    dispatched: 'badge-primary',
     partially_received: 'badge-warning',
     received: 'badge-success',
     closed: 'badge-neutral',
@@ -134,11 +142,11 @@ function approve(): void {
     );
 }
 
-function submit(): void {
+function dispatch(): void {
     patchPoRequest(
-        PurchaseOrderController.submit(props.purchaseOrder.id).url,
-        'Purchase order submitted to supplier.',
-        'Failed to submit purchase order.'
+        PurchaseOrderController.dispatch(props.purchaseOrder.id).url,
+        'Purchase order dispatched to supplier.',
+        'Failed to dispatch purchase order.'
     );
 }
 
@@ -237,7 +245,7 @@ const selectedSupplier = computed(() =>
 );
 
 function availableProducts(currentIndex: number) {
-    const selectedIds = form.items
+    const selectedIds = editForm.items
         .filter((_, i) => i !== currentIndex)
         .map(item => item.product_id)
     return props.products.filter(p => !selectedIds.includes(p.id))
@@ -287,7 +295,7 @@ function submitEditForm(): void {
         <!-- supplier details -->
         <div class="card bg-base-100 border border-base-300 shadow-sm">
             <div class="card-body">
-                <template v-if="['pending', 'approved'].includes(purchaseOrder.status)">
+                <template v-if="['draft', 'approved'].includes(purchaseOrder.status)">
                     <div class="flex items-center justify-between">
                         <h2 class="card-title">
                             Purchase Order #{{ purchaseOrder.id }}
@@ -301,7 +309,7 @@ function submitEditForm(): void {
                                 <span class="label-text">Supplier</span>
                             </div>
                             <select v-model="editForm.supplier_id" class="select select-bordered w-full"
-                                :class="{ 'select-error': editForm.errors.supplier_id }">
+                                :class="{ 'select-error': editForm.errors.supplier_id }" :disabled="!props.can.update">
                                 <option :value="null" disabled>Select a supplier</option>
                                 <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
                                     {{ supplier.name }}
@@ -391,9 +399,9 @@ function submitEditForm(): void {
                     <div class="label">
                         <span class="label-text">Notes</span>
                     </div>
-                    <template v-if="['pending', 'approved'].includes(purchaseOrder.status)">
+                    <template v-if="['draft', 'approved'].includes(purchaseOrder.status)">
                         <textarea v-model="editForm.notes" class="textarea textarea-bordered w-full" rows="5"
-                            :class="{ 'textarea-error': editForm.errors.notes }"
+                            :class="{ 'textarea-error': editForm.errors.notes }" :disabled="!props.can.update"
                             placeholder="Add any notes for this purchase order..."></textarea>
                         <div v-if="editForm.errors.notes" class="label">
                             <span class="label-text-alt text-error">{{ editForm.errors.notes }}</span>
@@ -422,31 +430,32 @@ function submitEditForm(): void {
                 </div>
 
                 <div class="card-actions mt-auto pt-4 flex-col gap-2">
-                    <button v-if="['pending', 'approved'].includes(purchaseOrder.status)" type="button"
+                    <button v-if="['draft', 'approved'].includes(purchaseOrder.status)" type="button"
                         class="btn btn-success w-full" @click="submitEditForm"
                         :disabled="!editForm.isDirty || editForm.processing">
                         Save Changes
                     </button>
-                    <button v-if="purchaseOrder.status === 'pending'" type="button" class="btn btn-info w-full"
-                        @click="approve" :disabled="editForm.isDirty || editForm.processing">
+                    <button v-if="purchaseOrder.status === 'draft'" type="button" class="btn btn-info w-full"
+                        @click="approve" :disabled="editForm.isDirty || editForm.processing || !props.can.approve">
                         Approve
                     </button>
                     <button v-if="purchaseOrder.status === 'approved'" type="button" class="btn btn-primary w-full"
-                        @click="submit" :disabled="editForm.isDirty || editForm.processing">
-                        Submit to Supplier
+                        @click="dispatch" :disabled="editForm.isDirty || editForm.processing || !props.can.dispatch">
+                        Mark as Dispatched
                     </button>
-                    <button v-if="['submitted', 'partially_received'].includes(purchaseOrder.status)" type="button"
-                        class="btn btn-warning w-full" @click="received" :disabled="form.processing">
+                    <button v-if="['dispatched', 'partially_received'].includes(purchaseOrder.status)" type="button"
+                        class="btn btn-warning w-full" @click="received"
+                        :disabled="form.processing || !props.can.receive">
                         Confirm Received
                     </button>
                     <button v-if="purchaseOrder.status === 'partially_received'" type="button"
-                        class="btn btn-neutral w-full" @click="close">
+                        class="btn btn-neutral w-full" @click="close" :disabled="!props.can.close">
                         Close PO
                     </button>
                     <button
-                        v-if="['pending', 'approved', 'submitted', 'partially_received'].includes(purchaseOrder.status)"
+                        v-if="['draft', 'approved', 'dispatched', 'partially_received'].includes(purchaseOrder.status)"
                         type="button" class="btn btn-error btn-outline w-full" @click="cancel"
-                        :disabled="editForm.isDirty || editForm.processing">
+                        :disabled="editForm.isDirty || editForm.processing || !props.can.cancel">
                         Cancel
                     </button>
                 </div>
@@ -459,8 +468,8 @@ function submitEditForm(): void {
         <div class="card-body">
             <div class="flex items-center justify-between">
                 <h2 class="card-title">Purchase Order Items</h2>
-                <template v-if="['pending', 'approved'].includes(purchaseOrder.status)">
-                    <button type="button" class="btn btn-primary btn-sm" @click="addItem">
+                <template v-if="['draft', 'approved'].includes(purchaseOrder.status)">
+                    <button type="button" class="btn btn-primary btn-sm" @click="addItem" :disabled="!props.can.update">
                         Add Item
                     </button>
                 </template>
@@ -468,7 +477,7 @@ function submitEditForm(): void {
             </div>
 
             <div class="overflow-x-auto">
-                <template v-if="['pending', 'approved'].includes(purchaseOrder.status)">
+                <template v-if="['draft', 'approved'].includes(purchaseOrder.status)">
                     <table class="table table-zebra">
                         <thead>
                             <tr>
@@ -491,7 +500,7 @@ function submitEditForm(): void {
                                 <td>
                                     <select v-model="item.product_id" class="select select-bordered select-sm w-full"
                                         :class="{ 'select-error': editForm.errors[`items.${index}.product_id`] }"
-                                        @change="onProductSelected(item)">
+                                        :disabled="!props.can.update" @change="onProductSelected(item)">
                                         <option :value="0" disabled>Select a product</option>
                                         <option v-for="product in availableProducts(index)" :key="product.id"
                                             :value="product.id">
@@ -505,7 +514,7 @@ function submitEditForm(): void {
                                 </td>
                                 <td>
                                     <input v-model.number="item.quantity_ordered" type="number" min="1"
-                                        class="input input-bordered input-sm w-full"
+                                        class="input input-bordered input-sm w-full" :disabled="!props.can.update"
                                         :class="{ 'input-error': editForm.errors[`items.${index}.quantity_ordered`] }" />
                                     <p v-if="editForm.errors[`items.${index}.quantity_ordered`]"
                                         class="text-error text-xs mt-1">
@@ -514,7 +523,7 @@ function submitEditForm(): void {
                                 </td>
                                 <td>
                                     <input v-model="item.unit_cost" type="number" step="0.01" min="0"
-                                        class="input input-bordered input-sm w-full"
+                                        class="input input-bordered input-sm w-full" :disabled="!props.can.update"
                                         :class="{ 'input-error': editForm.errors[`items.${index}.unit_cost`] }" />
                                     <p v-if="editForm.errors[`items.${index}.unit_cost`]"
                                         class="text-error text-xs mt-1">
@@ -526,7 +535,7 @@ function submitEditForm(): void {
                                 </td>
                                 <td>
                                     <button type="button" class="btn btn-ghost btn-sm text-error"
-                                        @click="removeItem(index)">
+                                        :disabled="!props.can.update" @click="removeItem(index)">
                                         <Icon icon="heroicons:x-mark" class="h-4 w-4" />
                                     </button>
                                 </td>
@@ -535,7 +544,7 @@ function submitEditForm(): void {
                     </table>
                 </template>
 
-                <template v-else-if="['submitted', 'partially_received'].includes(purchaseOrder.status)">
+                <template v-else-if="['dispatched', 'partially_received'].includes(purchaseOrder.status)">
                     <table class="table table-zebra">
                         <thead>
                             <tr>
@@ -566,10 +575,10 @@ function submitEditForm(): void {
                                         item.quantity_received }} left)</span>
                                 </td>
                                 <td class="tabular-nums"
-                                    v-if="['submitted', 'partially_received'].includes(purchaseOrder.status)">
+                                    v-if="['dispatched', 'partially_received'].includes(purchaseOrder.status)">
                                     <div class="join w-full">
                                         <input v-model.number="form.items[index].quantity_received" type="number"
-                                            min="0" :max="(item.quantity_ordered - item.quantity_received)" step="0.01"
+                                            min="0" :max="(item.quantity_ordered - item.quantity_received)" step="1"
                                             class="input input-bordered input-sm join-item w-full"
                                             :class="{ 'input-error': form.errors[`items.${index}.quantity_received`] }" />
                                         <button type="button"

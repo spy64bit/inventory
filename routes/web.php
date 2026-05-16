@@ -50,7 +50,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     Route::prefix('purchase-orders')->name('purchase-orders.')->group(function () {
         Route::patch('{purchaseOrder}/approve', [PurchaseOrderController::class, 'approve'])->name('approve');
-        Route::patch('{purchaseOrder}/submit', [PurchaseOrderController::class, 'submit'])->name('submit');
+        Route::patch('{purchaseOrder}/dispatch', [PurchaseOrderController::class, 'dispatch'])->name('dispatch');
         Route::patch('{purchaseOrder}/cancel', [PurchaseOrderController::class, 'cancel'])->name('cancel');
         Route::patch('{purchaseOrder}/close', [PurchaseOrderController::class, 'close'])->name('close');
         Route::post('{purchaseOrder}/receive', [PurchaseOrderController::class, 'receive'])->name('receive');

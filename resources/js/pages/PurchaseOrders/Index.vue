@@ -19,7 +19,7 @@ type PurchaseOrder = {
     id: number;
     status: string;
     notes: string | null;
-    submitted_at: string | null;
+    dispatched_at: string | null;
     received_at: string | null;
     approved_at: string | null;
     created_at: string;
@@ -43,9 +43,9 @@ const columns: Column[] = [
 ];
 
 const statusBadgeClass: Record<string, string> = {
-    pending: 'badge-ghost',
+    draft: 'badge-ghost',
     approved: 'badge-info',
-    submitted: 'badge-primary',
+    dispatched: 'badge-primary',
     partially_received: 'badge-warning',
     received: 'badge-success',
     closed: 'badge-neutral',
@@ -91,7 +91,7 @@ function formatDate(value: string | null): string {
             </template>
 
             <template #cell-status="{ row }">
-                <span class="badge badge-soft" :class="statusBadgeClass[row.status] ?? 'badge-ghost'">
+                <span class="badge" :class="statusBadgeClass[row.status] ?? 'badge-ghost'">
                     {{ formatStatus(row.status) }}
                 </span>
             </template>
