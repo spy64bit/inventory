@@ -95,10 +95,10 @@ class PurchaseOrderPolicy
             && in_array($user->position, [Position::Admin, Position::Manager]);
     }
 
-    public function delete(User $user, PurchaseOrder $purchaseOrder): bool
-    {
-        return $user->position === Position::Admin && $purchaseOrder->status === PurchaseOrderStatus::Draft;
-    }
+    // public function delete(User $user, PurchaseOrder $purchaseOrder): bool
+    // {
+    //     return $user->position === Position::Admin && $purchaseOrder->status === PurchaseOrderStatus::Draft;
+    // }
 
     /**
      * Determine whether the user can restore the model.
