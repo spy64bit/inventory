@@ -2,6 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Link, useForm } from '@inertiajs/vue3';
 import { update, index } from '@/actions/App/Http/Controllers/ProductController';
+import Combobox from '@/components/Combobox.vue';
 
 defineOptions({
     layout: AppLayout,
@@ -38,6 +39,7 @@ function submit(saveAndClose = false) {
 
     form.put(update.url(props.product.id, { query: { save_and_close: saveAndClose ? 1 : 0 } }));
 }
+
 </script>
 
 <template>
@@ -88,7 +90,7 @@ function submit(saveAndClose = false) {
 
                     <fieldset class="fieldset">
                         <legend class="fieldset-legend">Reorder Level</legend>
-                        <input id="reorder_level" v-model="form.reorder_level" type="number" min="0"
+                        <input id="reorder_level" v-model="form.reorder_level" type="number" min="0" step="1"
                             class="input input-bordered w-full" />
                         <p v-if="form.errors.reorder_level" class="fieldset-label text-error">
                             {{ form.errors.reorder_level }}
@@ -99,17 +101,10 @@ function submit(saveAndClose = false) {
                 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                     <fieldset class="fieldset">
                         <legend class="fieldset-legend">Supplier</legend>
-                        <select id="supplier_id" v-model="form.supplier_id" class="select select-bordered w-full">
-                            <option disabled :value="null">Select a supplier</option>
-                            <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
-                                {{ supplier.name }}
-                            </option>
-                        </select>
-                        <p v-if="form.errors.supplier_id" class="fieldset-label text-error">
-                            {{ form.errors.supplier_id }}
-                        </p>
+                        <Combobox v-model="form.supplier_id" :options="suppliers" placeholder="Select a supplier"
+                            :error="form.errors.supplier_id" />
                     </fieldset>
-
+                    <!-- 
                     <fieldset class="fieldset">
                         <legend class="fieldset-legend">Category</legend>
                         <select id="category_id" v-model="form.category_id" class="select select-bordered w-full">
@@ -121,7 +116,14 @@ function submit(saveAndClose = false) {
                         <p v-if="form.errors.category_id" class="fieldset-label text-error">
                             {{ form.errors.category_id }}
                         </p>
+                    </fieldset> -->
+
+                    <fieldset class="fieldset">
+                        <legend class="fieldset-legend">Category</legend>
+                        <Combobox v-model="form.category_id" :options="categories" placeholder="Select a category"
+                            :error="form.errors.category_id" />
                     </fieldset>
+
                 </div>
 
                 <div class="flex items-center gap-3 pt-2">
