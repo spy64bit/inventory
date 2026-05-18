@@ -43,6 +43,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CategorySeeder::class,
             SupplierSeeder::class,
+            PurchaseOrderSeeder::class,
         ]);
 
         Product::factory(50)->create();
