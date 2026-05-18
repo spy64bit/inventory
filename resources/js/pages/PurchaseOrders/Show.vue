@@ -5,7 +5,6 @@ import { router, useForm } from '@inertiajs/vue3';
 import { Icon } from '@iconify/vue';
 import { toast } from '@/lib/toast';
 import PurchaseOrderController from '@/actions/App/Http/Controllers/PurchaseOrderController';
-import supplier from '@/routes/supplier';
 import purchaseOrders from '@/routes/purchase-orders';
 
 defineOptions({
