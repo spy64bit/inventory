@@ -7,7 +7,7 @@ import { destroy, bulkDestroy, edit } from '@/actions/App/Http/Controllers/Produ
 import { stockIn, stockOut } from '@/actions/App/Http/Controllers/StockMovementController';
 import type { Column, Filters, PaginatedData } from '@/types/data-table';
 import { toast } from '@/lib/toast';
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { Icon } from '@iconify/vue';
 
 defineOptions({
@@ -30,6 +30,11 @@ const props = defineProps<{
     products: PaginatedData<Product>;
     filters: Filters;
     errors: Object;
+    stats: {
+        total: number;
+        stock: number;
+        low_on_stock: number;
+    };
 }>();
 
 const columns: Column[] = [
@@ -184,6 +189,27 @@ function openNewProductModal() {
     showNewProductModal.value = true;
 }
 
+const statCards = [
+    {
+        label: 'Total Products',
+        value: props.stats.total,
+        icon: 'heroicons:cube',
+        colorClass: 'bg-primary/10 text-primary',
+    },
+    {
+        label: 'Product Inventory',
+        value: props.stats.stock,
+        icon: 'heroicons:archive-box',
+        colorClass: 'bg-success/10 text-success',
+    },
+    {
+        label: 'Low on Stock',
+        value: props.stats.low_on_stock,
+        icon: 'heroicons:exclamation-triangle',
+        colorClass: 'bg-warning/10 text-warning',
+    },
+];
+
 const isMounted = ref(false);
 onMounted(() => {
     isMounted.value = true;
@@ -198,6 +224,20 @@ onMounted(() => {
             <button type="button" class="btn btn-primary" @click="openNewProductModal">
                 Create Product
             </button>
+        </div>
+
+        <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div v-for="card in statCards" :key="card.label" class="card bg-base-100 border border-base-300">
+                <div class="card-body">
+                    <div class="flex items-center gap-3">
+                        <span :class="['rounded-lg p-2', card.colorClass]">
+                            <Icon :icon="card.icon" class="h-5 w-5" />
+                        </span>
+                        <p class="text-sm font-medium opacity-70">{{ card.label }}</p>
+                    </div>
+                    <p class="mt-2 text-3xl font-bold">{{ card.value }}</p>
+                </div>
+            </div>
         </div>
 
         <DataTable :columns="columns" :rows="products" :filters="filters" route-prefix="/product">

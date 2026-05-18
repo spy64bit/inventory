@@ -43,9 +43,18 @@ class ProductController extends Controller
 
         $products = $query->paginate($perPage)->withQueryString();
 
+        $total = $products->total();
+        $stock = floor($products->sum('current_stock'));
+        $lowOnStock = $products->where('current_stock', '<=', 'reorder_level')->count();
+
         return Inertia::render('Product/Index', [
             'products' => $products,
             'filters' => $filters,
+            'stats' => [
+                'total' => $total,
+                'stock' => $stock,
+                'low_on_stock' => $lowOnStock,
+            ],
         ]);
     }
 
@@ -67,9 +76,9 @@ class ProductController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'cost_price' => ['required', 'numeric', 'min:0'],
-            'reorder_level' => ['required', 'integer', 'min:0'],
-            'supplier_id' => ['required', 'integer', 'exists:supplier,id'],
-            'category_id' => ['required', 'integer', 'exists:category,id'],
+            'reorder_level' => ['required', 'numeric', 'min:0'],
+            'supplier_id' => ['required', 'integer', 'exists:suppliers,id'],
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
         ]);
 
         Product::create($validated);
@@ -92,8 +101,8 @@ class ProductController extends Controller
     {
         return Inertia::render('Product/Edit', [
             'product' => $product,
-            'suppliers' => Supplier::all(['id', 'name']),
-            'categories' => Category::all(['id', 'name']),
+            'suppliers' => Supplier::orderBy('name')->get(['id', 'name']),
+            'categories' => Category::orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -110,9 +119,9 @@ class ProductController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'cost_price' => ['required', 'numeric', 'min:0'],
-            'reorder_level' => ['required', 'integer', 'min:0'],
-            'supplier_id' => ['required', 'integer', 'exists:supplier,id'],
-            'category_id' => ['required', 'integer', 'exists:category,id'],
+            'reorder_level' => ['required', 'numeric', 'min:0'],
+            'supplier_id' => ['required', 'integer', 'exists:suppliers,id'],
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
         ]);
 
         $product->update($validated);
