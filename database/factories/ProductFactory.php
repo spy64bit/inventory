@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\Category;
-use App\Models\Model;
 use App\Models\Supplier;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -30,8 +29,8 @@ class ProductFactory extends Factory
             'unit_of_measure' => $this->faker->randomElement(['piece', 'kg', 'liter', 'carton', 'box']),
             'current_stock' => $this->faker->randomFloat(2, 0, 500),
             'reorder_level' => $this->faker->randomFloat(2, 5, 50),
-            'category_id' => Category::inRandomOrder()->first()?->id,
-            'supplier_id' => Supplier::inRandomOrder()->first()?->id,
+            'category_id' => Category::factory(),
+            'supplier_id' => Supplier::factory(),
         ];
     }
 }
