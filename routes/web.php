@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Login;
 use App\Http\Controllers\Logout;
 use App\Http\Controllers\ProductController;
@@ -20,7 +21,7 @@ Route::group(['middleware' => 'guest'], function () {
 Route::group(['middleware' => 'auth'], function () {
     Route::post('/logout', Logout::class)->name('logout');
 
-    Route::inertia('/', 'Dashboard')->name('dashboard');
+    Route::get('/', DashboardController::class)->name('dashboard');
 
     // Route::inertia('/dashboard', 'Dashboard')->name('dashboard');
 
