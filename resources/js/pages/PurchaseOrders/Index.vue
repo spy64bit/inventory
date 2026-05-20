@@ -60,10 +60,8 @@ function formatStatus(status: string): string {
 }
 
 function formatDate(value: string | null): string {
-    if (!value) {
-        return '—';
-    }
-    return new Date(value).toLocaleDateString(undefined, {
+    if (!value) return '—';
+    return new Date(value.replace(' ', 'T')).toLocaleDateString('en-MY', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',

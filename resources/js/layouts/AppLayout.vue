@@ -1,11 +1,22 @@
 <script setup>
 import { Link, usePage } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import Toaster from '@/components/Toaster.vue';
 
 const sidebarOpen = ref(false);
 const page = usePage();
+
+const user = computed(() => page.props.auth.user);
+
+const roleBadgeClass = computed(() => {
+    const map = {
+        admin: 'badge-error',
+        manager: 'badge-warning',
+        staff: 'badge-info',
+    };
+    return map[user.value?.position] ?? 'badge-neutral';
+});
 
 const navigation = [
     { name: 'Dashboard', href: '/', icon: "ic:twotone-space-dashboard" },
@@ -48,7 +59,19 @@ function isActive(href) {
             </nav>
 
             <!-- User / Logout -->
-            <div class="border-base-300 border-t p-2">
+            <div class="border-base-300 border-t p-3">
+                <!-- User info card -->
+                <div class="bg-base-200 mb-2 flex items-center gap-3 rounded-lg px-3 py-2">
+                    <div
+                        class="bg-primary text-primary-content flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold">
+                        {{ user.name.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="truncate text-sm font-medium leading-tight">{{ user.name }}</p>
+                        <span class="badge badge-xs mt-0.5 capitalize" :class="roleBadgeClass">{{ user.position
+                            }}</span>
+                    </div>
+                </div>
                 <ul class="menu menu-md w-full">
                     <li>
                         <Link href="/logout" method="post" as="button">
