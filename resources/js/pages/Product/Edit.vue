@@ -90,7 +90,7 @@ function submit(saveAndClose = false) {
 
                     <fieldset class="fieldset">
                         <legend class="fieldset-legend">Reorder Level</legend>
-                        <input id="reorder_level" v-model="form.reorder_level" type="number" min="0" step="1"
+                        <input id="reorder_level" v-model="form.reorder_level" type="number" min="0" step="0.01"
                             class="input input-bordered w-full" />
                         <p v-if="form.errors.reorder_level" class="fieldset-label text-error">
                             {{ form.errors.reorder_level }}

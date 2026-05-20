@@ -20,7 +20,18 @@ const emit = defineEmits<{
 
 const search = ref('')
 const open = ref(false)
+const openUpward = ref(false)
 const container = ref<HTMLElement | null>(null)
+
+const DROPDOWN_HEIGHT = 260 // approx: search input + up to 6 list items
+
+function toggle() {
+    if (!open.value && container.value) {
+        const rect = container.value.getBoundingClientRect()
+        openUpward.value = window.innerHeight - rect.bottom < DROPDOWN_HEIGHT
+    }
+    open.value = !open.value
+}
 
 const selected = computed(() =>
     props.options.find(o => o.id === props.modelValue) ?? null
@@ -47,6 +58,7 @@ function clear() {
 function handleClickOutside(e: MouseEvent) {
     if (container.value && !container.value.contains(e.target as Node)) {
         open.value = false
+        openUpward.value = false
         search.value = ''
     }
 }
@@ -58,7 +70,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleClickOutsi
 <template>
     <div ref="container" class="relative w-full">
         <div class="input input-bordered w-full flex items-center justify-between cursor-pointer gap-2"
-            :class="{ 'input-error': error }" @click="open = !open">
+            :class="{ 'input-error': error }" @click="toggle">
             <span v-if="selected" class="truncate">{{ selected.name }}</span>
             <span v-else class="text-base-content/40">{{ placeholder ?? 'Select an option' }}</span>
             <button v-if="selected" type="button" class="text-base-content/40 hover:text-base-content"
@@ -68,7 +80,8 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleClickOutsi
             <span v-else class="text-base-content/40">▾</span>
         </div>
 
-        <div v-if="open" class="absolute z-50 mt-1 w-full bg-base-100 border border-base-300 rounded-box shadow-lg">
+        <div v-if="open" class="absolute z-50 w-full bg-base-100 border border-base-300 rounded-box shadow-lg"
+            :class="openUpward ? 'bottom-full mb-1' : 'top-full mt-1'">
             <div class="p-2">
                 <input v-model="search" type="text" class="input input-bordered input-sm w-full" placeholder="Search..."
                     @click.stop autofocus />
