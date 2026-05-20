@@ -112,7 +112,7 @@ function formatDate(dateString: string) {
         <div class="mb-6 flex items-center justify-between">
             <h1 class="text-2xl font-bold">Categories</h1>
             <button type="button" class="btn btn-primary" @click="openCreateModal">
-                Add Category
+                New Category
             </button>
         </div>
 
@@ -148,7 +148,7 @@ function formatDate(dateString: string) {
         <div class="modal" :class="{ 'modal-open': showFormModal }" role="dialog" aria-modal="true">
             <div class="modal-box max-w-md">
                 <h2 class="text-lg font-semibold">
-                    {{ editingCategory ? 'Edit Category' : 'Add Category' }}
+                    {{ editingCategory ? 'Edit Category' : 'New Category' }}
                 </h2>
 
                 <form class="mt-4 space-y-4" @submit.prevent="submitForm">

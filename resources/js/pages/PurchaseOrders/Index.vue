@@ -74,7 +74,7 @@ function formatDate(value: string | null): string {
         <div class="mb-6 flex items-center justify-between">
             <h1 class="text-2xl font-bold">Purchase Orders</h1>
             <Link :href="create.url()" class="btn btn-primary">
-                Create Purchase Order
+                New Purchase Order
             </Link>
         </div>
 

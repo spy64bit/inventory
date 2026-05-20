@@ -222,7 +222,7 @@ onMounted(() => {
         <div class="mb-6 flex items-center justify-between">
             <h1 class="text-2xl font-bold">Products</h1>
             <button type="button" class="btn btn-primary" @click="openNewProductModal">
-                Create Product
+                New Product
             </button>
         </div>
 
