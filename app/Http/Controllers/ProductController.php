@@ -60,6 +60,8 @@ class ProductController extends Controller
                 'stock' => $stock,
                 'low_on_stock' => $lowOnStock,
             ],
+            'suppliers' => Supplier::orderBy('name')->get(['id', 'name']),
+            'categories' => Category::orderBy('name')->get(['id', 'name']),
         ]);
     }
 

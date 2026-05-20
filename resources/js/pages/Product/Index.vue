@@ -35,6 +35,8 @@ const props = defineProps<{
         stock: number;
         low_on_stock: number;
     };
+    suppliers: { id: number; name: string }[];
+    categories: { id: number; name: string }[];
 }>();
 
 const columns: Column[] = [
@@ -279,7 +281,7 @@ onMounted(() => {
 
 
     <template v-if="isMounted">
-        <AddProductModal v-model:open="showNewProductModal" />
+        <AddProductModal v-model:open="showNewProductModal" :suppliers="suppliers" :categories="categories" />
 
 
         <Teleport to="body">
