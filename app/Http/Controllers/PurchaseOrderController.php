@@ -170,7 +170,7 @@ class PurchaseOrderController extends Controller
         $data = $request->validate([
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity_received' => 'required|numeric|min:0',
+            'items.*.quantity_received' => 'required|numeric|min:0.01',
         ]);
 
         try {
