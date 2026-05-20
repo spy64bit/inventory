@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { Form, useHttp } from '@inertiajs/vue3';
 import { store } from '@/routes/product';
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
+import Combobox from '@/components/Combobox.vue';
+
+type SelectOption = { id: number; name: string };
 
 const open = defineModel<boolean>('open', { required: true });
 
@@ -9,25 +12,13 @@ const http = useHttp({
     q: '',
 });
 
-type SelectOption = {
-    id: number;
-    name: string;
-};
+const props = defineProps<{
+    suppliers: SelectOption[];
+    categories: SelectOption[];
+}>();
 
-const suppliers = ref<SelectOption[]>([]);
-const categories = ref<SelectOption[]>([]);
-
-onMounted(() => {
-    http.get('/api/suppliers').then((response) => {
-        suppliers.value = response as SelectOption[];
-    });
-
-    http.get('/api/categories').then((response) => {
-        categories.value = response as SelectOption[];
-    });
-});
-
-
+const supplierId = ref<number | null>(null);
+const categoryId = ref<number | null>(null);
 
 </script>
 
@@ -35,7 +26,8 @@ onMounted(() => {
     <Teleport to="body">
         <div class="modal" :class="{ 'modal-open': open }" role="dialog" aria-modal="true">
             <div class="modal-box max-w-md p-0">
-                <Form :action="store()" #default="{ errors, processing }" @success="open = false">
+                <Form :action="store()" #default="{ errors, processing }"
+                    @success="open = false; supplierId = null; categoryId = null">
                     <div class="border-base-200 border-b px-6 py-4">
                         <h2 class="text-lg font-semibold">Create New Product</h2>
                     </div>
@@ -73,24 +65,16 @@ onMounted(() => {
                         <!-- supplier -->
                         <fieldset class="fieldset">
                             <legend class="fieldset-legend">Supplier</legend>
-                            <select name="supplier_id" class="select select-bordered w-full">
-                                <option disabled value="">Select a supplier</option>
-                                <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
-                                    {{ supplier.name }}
-                                </option>
-                            </select>
-                            <p v-if="errors.supplier_id" class="fieldset-label text-error">{{ errors.supplier_id }}</p>
+                            <Combobox v-model="supplierId" :options="suppliers" placeholder="Select a supplier"
+                                :error="errors.supplier_id" />
+                            <input type="hidden" name="supplier_id" :value="supplierId ?? ''" />
                         </fieldset>
                         <!-- category -->
                         <fieldset class="fieldset">
                             <legend class="fieldset-legend">Category</legend>
-                            <select name="category_id" class="select select-bordered w-full">
-                                <option disabled value="">Select a category</option>
-                                <option v-for="category in categories" :key="category.id" :value="category.id">
-                                    {{ category.name }}
-                                </option>
-                            </select>
-                            <p v-if="errors.category_id" class="fieldset-label text-error">{{ errors.category_id }}</p>
+                            <Combobox v-model="categoryId" :options="categories" placeholder="Select a category"
+                                :error="errors.category_id" />
+                            <input type="hidden" name="category_id" :value="categoryId ?? ''" />
                         </fieldset>
                     </div>
 
