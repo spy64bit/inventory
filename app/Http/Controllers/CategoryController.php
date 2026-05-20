@@ -3,16 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class CategoryController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Category::class);
+
         $filters = $request->only(['search', 'sort', 'direction', 'per_page']);
 
         $query = Category::query();
@@ -49,6 +54,8 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Category::class);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:category,name'],
         ]);
@@ -63,6 +70,8 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category)
     {
+        $this->authorize('update', $category);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:category,name,'.$category->id],
         ]);
@@ -77,6 +86,8 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
+        $this->authorize('delete', $category);
+
         $category->delete();
 
         return redirect()->back();
@@ -87,6 +98,8 @@ class CategoryController extends Controller
      */
     public function bulkDestroy(Request $request)
     {
+        $this->authorize('delete', Category::class);
+
         $validated = $request->validate([
             'ids' => ['required', 'array', 'min:1'],
             'ids.*' => ['required', 'integer', 'exists:category,id'],

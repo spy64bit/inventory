@@ -3,16 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Supplier;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class SupplierController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Supplier::class);
+
         $filters = $request->only(['search', 'sort', 'direction', 'per_page']);
 
         $query = Supplier::query();
@@ -49,6 +54,8 @@ class SupplierController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Supplier::class);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:supplier,name'],
         ]);
@@ -63,6 +70,8 @@ class SupplierController extends Controller
      */
     public function update(Request $request, Supplier $supplier)
     {
+        $this->authorize('update', $supplier);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:supplier,name,'.$supplier->id],
         ]);
@@ -77,6 +86,8 @@ class SupplierController extends Controller
      */
     public function destroy(Supplier $supplier)
     {
+        $this->authorize('delete', $supplier);
+
         Supplier::destroy($supplier->id);
 
         return redirect()->back();
@@ -87,6 +98,8 @@ class SupplierController extends Controller
      */
     public function bulkDestroy(Request $request)
     {
+        $this->authorize('delete', Supplier::class);
+
         $validated = $request->validate([
             'ids' => ['required', 'array', 'min:1'],
             'ids.*' => ['required', 'integer', 'exists:supplier,id'],

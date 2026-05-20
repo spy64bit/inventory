@@ -5,16 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Supplier;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ProductController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Product::class);
+
         $filters = $request->only(['search', 'sort', 'direction', 'per_page']);
 
         $query = Product::query();
@@ -71,6 +76,8 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Product::class);
+
         $validated = $request->validate([
             'sku' => ['required', 'string', 'max:255', 'unique:products,sku'],
             'name' => ['required', 'string', 'max:255'],
@@ -99,6 +106,8 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
+        $this->authorize('update', $product);
+
         return Inertia::render('Product/Edit', [
             'product' => $product,
             'suppliers' => Supplier::orderBy('name')->get(['id', 'name']),
@@ -111,6 +120,7 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
+        $this->authorize('update', $product);
 
         $saveAndClose = $request->query('save_and_close', false);
 
@@ -138,6 +148,8 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
+        $this->authorize('delete', $product);
+
         Product::destroy($product->id);
 
         return to_route('product.index')->with('success', 'Product deleted successfully.');
@@ -148,6 +160,8 @@ class ProductController extends Controller
      */
     public function bulkDestroy(Request $request)
     {
+        $this->authorize('delete', Product::class);
+
         $validated = $request->validate([
             'ids' => ['required', 'array', 'min:1'],
             'ids.*' => ['required', 'integer', 'exists:products,id'],
