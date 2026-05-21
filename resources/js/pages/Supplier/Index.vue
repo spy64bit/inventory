@@ -147,8 +147,8 @@ function formatDate(dateString: string) {
     </div>
 
     <!-- Add / Edit Modal -->
-    <Teleport to="body">
-        <div class="modal" :class="{ 'modal-open': showFormModal }" role="dialog" aria-modal="true">
+    <Teleport v-if="showFormModal" to="body">
+        <div class="modal modal-open" role="dialog" aria-modal="true">
             <div class="modal-box max-w-md">
                 <h2 class="text-lg font-semibold">
                     {{ editingSupplier ? 'Edit Supplier' : 'New Supplier' }}
@@ -179,8 +179,8 @@ function formatDate(dateString: string) {
     </Teleport>
 
     <!-- Delete Confirmation Modal -->
-    <Teleport to="body">
-        <div class="modal" :class="{ 'modal-open': showDeleteModal }" role="dialog" aria-modal="true">
+    <Teleport v-if="showDeleteModal" to="body">
+        <div class="modal modal-open" role="dialog" aria-modal="true">
             <div class="modal-box max-w-sm">
                 <h2 class="text-lg font-semibold">Delete Supplier</h2>
                 <p class="mt-2 text-sm opacity-70">

@@ -645,8 +645,8 @@ function submitEditForm(): void {
     </div>
 
     <!-- Cancel Confirmation Modal -->
-    <Teleport to="body">
-        <div class="modal" :class="{ 'modal-open': showCancelModal }" role="dialog" aria-modal="true">
+    <Teleport v-if="showCancelModal" to="body">
+        <div class="modal modal-open" role="dialog" aria-modal="true">
             <div class="modal-box max-w-sm">
                 <h2 class="text-lg font-semibold">Cancel Purchase Order</h2>
                 <p class="mt-2 text-sm opacity-70">
@@ -669,8 +669,8 @@ function submitEditForm(): void {
     </Teleport>
 
     <!-- Close Confirmation Modal -->
-    <Teleport to="body">
-        <div class="modal" :class="{ 'modal-open': showCloseModal }" role="dialog" aria-modal="true">
+    <Teleport v-if="showCloseModal" to="body">
+        <div class="modal modal-open" role="dialog" aria-modal="true">
             <div class="modal-box max-w-sm">
                 <h2 class="text-lg font-semibold">Close Purchase Order</h2>
                 <p class="mt-2 text-sm opacity-70">
