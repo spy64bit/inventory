@@ -26,13 +26,17 @@ class SupplierController extends Controller
         $query = Supplier::query();
 
         if ($search = $request->input('search')) {
-            $query->where('name', 'like', '%'.$search.'%');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('email', 'like', '%'.$search.'%')
+                    ->orWhere('phone', 'like', '%'.$search.'%');
+            });
         }
 
         $sortColumn = $request->input('sort', 'id');
         $sortDirection = $request->input('direction', 'desc');
 
-        $allowedSorts = ['id', 'name', 'created_at'];
+        $allowedSorts = ['id', 'name', 'email', 'lead_time_days', 'created_at'];
         if (! in_array($sortColumn, $allowedSorts)) {
             $sortColumn = 'id';
         }

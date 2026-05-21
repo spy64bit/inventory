@@ -14,6 +14,10 @@ defineOptions({
 type Supplier = {
     id: number;
     name: string;
+    email: string | null;
+    phone: string | null;
+    address: string | null;
+    lead_time_days: number | null;
     created_at: string;
     updated_at: string;
 };
@@ -25,6 +29,9 @@ const props = defineProps<{
 
 const columns: Column[] = [
     { key: 'name', label: 'Name', sortable: true },
+    { key: 'email', label: 'Email', sortable: true },
+    { key: 'phone', label: 'Phone' },
+    { key: 'lead_time_days', label: 'Lead Time', sortable: true },
     { key: 'created_at', label: 'Created At', sortable: true },
 ];
 
@@ -37,6 +44,10 @@ const nameInput = ref<HTMLInputElement | null>(null);
 
 const form = useForm({
     name: '',
+    email: '',
+    phone: '',
+    address: '',
+    lead_time_days: '' as number | string,
 });
 
 function openCreateModal() {
@@ -50,6 +61,10 @@ function openCreateModal() {
 function openEditModal(supplier: Supplier) {
     editingSupplier.value = supplier;
     form.name = supplier.name;
+    form.email = supplier.email ?? '';
+    form.phone = supplier.phone ?? '';
+    form.address = supplier.address ?? '';
+    form.lead_time_days = supplier.lead_time_days ?? '';
     form.clearErrors();
     showFormModal.value = true;
     nextTick(() => nameInput.value?.focus());
@@ -120,6 +135,23 @@ function formatDate(dateString: string) {
         </div>
 
         <DataTable :columns="columns" :rows="suppliers" :filters="filters" route-prefix="/supplier">
+            <template #cell-email="{ value }">
+                <a v-if="value" :href="`mailto:${value}`" class="link link-hover text-primary">
+                    {{ value }}
+                </a>
+                <span v-else class="opacity-40">—</span>
+            </template>
+
+            <template #cell-phone="{ value }">
+                <span v-if="value">{{ value }}</span>
+                <span v-else class="opacity-40">—</span>
+            </template>
+
+            <template #cell-lead_time_days="{ value }">
+                <span v-if="value !== null && value !== ''">{{ value }}d</span>
+                <span v-else class="opacity-40">—</span>
+            </template>
+
             <template #cell-created_at="{ value }">
                 {{ formatDate(value as string) }}
             </template>
@@ -156,11 +188,47 @@ function formatDate(dateString: string) {
 
                 <form class="mt-4 space-y-4" @submit.prevent="submitForm">
                     <fieldset class="fieldset">
-                        <legend class="fieldset-legend">Name</legend>
+                        <legend class="fieldset-legend">Name <span class="text-error">*</span></legend>
                         <input id="modal-name" ref="nameInput" v-model="form.name" type="text"
                             class="input input-bordered w-full" placeholder="Supplier name" />
                         <p v-if="form.errors.name" class="text-error mt-1.5 text-sm">
                             {{ form.errors.name }}
+                        </p>
+                    </fieldset>
+
+                    <fieldset class="fieldset">
+                        <legend class="fieldset-legend">Email</legend>
+                        <input v-model="form.email" type="email" class="input input-bordered w-full"
+                            placeholder="orders@supplier.com" />
+                        <p v-if="form.errors.email" class="text-error mt-1.5 text-sm">
+                            {{ form.errors.email }}
+                        </p>
+                    </fieldset>
+
+                    <fieldset class="fieldset">
+                        <legend class="fieldset-legend">Phone</legend>
+                        <input v-model="form.phone" type="text" class="input input-bordered w-full"
+                            placeholder="03-12345678" />
+                        <p v-if="form.errors.phone" class="text-error mt-1.5 text-sm">
+                            {{ form.errors.phone }}
+                        </p>
+                    </fieldset>
+
+                    <fieldset class="fieldset">
+                        <legend class="fieldset-legend">Address</legend>
+                        <textarea v-model="form.address" class="textarea textarea-bordered w-full"
+                            placeholder="Street, City, State" rows="2" />
+                        <p v-if="form.errors.address" class="text-error mt-1.5 text-sm">
+                            {{ form.errors.address }}
+                        </p>
+                    </fieldset>
+
+                    <fieldset class="fieldset">
+                        <legend class="fieldset-legend">Lead Time (days)</legend>
+                        <input v-model="form.lead_time_days" type="number" min="0" max="365"
+                            class="input input-bordered w-full" placeholder="7" />
+                        <p v-if="form.errors.lead_time_days" class="text-error mt-1.5 text-sm">
+                            {{ form.errors.lead_time_days }}
                         </p>
                     </fieldset>
 

@@ -25,6 +25,10 @@ class StoreSupplierRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255', 'unique:suppliers,name'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'address' => ['nullable', 'string', 'max:500'],
+            'lead_time_days' => ['nullable', 'integer', 'min:0', 'max:365'],
         ];
     }
 }
