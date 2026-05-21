@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import DataTable from '@/components/DataTable.vue';
+import AsyncCombobox from '@/components/AsyncCombobox.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { store, update, destroy, bulkDestroy } from '@/actions/App/Http/Controllers/CategoryController';
 import type { Column, Filters, PaginatedData } from '@/types/data-table';
@@ -14,8 +15,16 @@ defineOptions({
 type Category = {
     id: number;
     name: string;
+    parent_id: number | null;
+    parent: { id: number; name: string } | null;
+    slug: string;
     created_at: string;
     updated_at: string;
+};
+
+type CategoryOption = {
+    id: number;
+    name: string;
 };
 
 const props = defineProps<{
@@ -35,8 +44,35 @@ const editingCategory = ref<Category | null>(null);
 const deletingCategory = ref<Category | null>(null);
 const nameInput = ref<HTMLInputElement | null>(null);
 
+// Async combobox state
+const categoryOptions = ref<CategoryOption[]>([]);
+const loadingOptions = ref(false);
+let searchTimer: ReturnType<typeof setTimeout>;
+
+async function fetchCategoryOptions(q: string = '') {
+    loadingOptions.value = true;
+    const selectedOption = categoryOptions.value.find((o) => o.id === form.parent_id) ?? null;
+    try {
+        const res = await fetch(`/api/categories?q=${encodeURIComponent(q)}`);
+        const results: CategoryOption[] = await res.json();
+        if (selectedOption && !results.some((r) => r.id === selectedOption.id)) {
+            categoryOptions.value = [selectedOption, ...results];
+        } else {
+            categoryOptions.value = results;
+        }
+    } finally {
+        loadingOptions.value = false;
+    }
+}
+
+function onCategorySearch(q: string) {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => fetchCategoryOptions(q), 300);
+}
+
 const form = useForm({
     name: '',
+    parent_id: null as number | null,
 });
 
 function openCreateModal() {
@@ -44,20 +80,27 @@ function openCreateModal() {
     form.reset();
     form.clearErrors();
     showFormModal.value = true;
+    fetchCategoryOptions();
     nextTick(() => nameInput.value?.focus());
 }
 
 function openEditModal(category: Category) {
     editingCategory.value = category;
     form.name = category.name;
+    form.parent_id = category.parent_id;
     form.clearErrors();
+    if (category.parent) {
+        categoryOptions.value = [category.parent];
+    }
     showFormModal.value = true;
+    fetchCategoryOptions();
     nextTick(() => nameInput.value?.focus());
 }
 
 function closeFormModal() {
     showFormModal.value = false;
     form.clearErrors();
+    categoryOptions.value = [];
 }
 
 function submitForm() {
@@ -146,8 +189,8 @@ function formatDate(dateString: string) {
     </div>
 
     <!-- Add / Edit Modal -->
-    <Teleport to="body">
-        <div class="modal" :class="{ 'modal-open': showFormModal }" role="dialog" aria-modal="true">
+    <Teleport v-if="showFormModal" to="body">
+        <div class="modal modal-open" role="dialog" aria-modal="true">
             <div class="modal-box max-w-md">
                 <h2 class="text-lg font-semibold">
                     {{ editingCategory ? 'Edit Category' : 'New Category' }}
@@ -161,6 +204,12 @@ function formatDate(dateString: string) {
                         <p v-if="form.errors.name" class="text-error mt-1.5 text-sm">
                             {{ form.errors.name }}
                         </p>
+                    </fieldset>
+
+                    <fieldset class="fieldset">
+                        <legend class="fieldset-legend">Parent Category</legend>
+                        <AsyncCombobox v-model="form.parent_id" :options="categoryOptions" :loading="loadingOptions"
+                            :error="form.errors.parent_id" placeholder="None (Top-level)" @search="onCategorySearch" />
                     </fieldset>
 
                     <div class="modal-action">
@@ -178,8 +227,8 @@ function formatDate(dateString: string) {
     </Teleport>
 
     <!-- Delete Confirmation Modal -->
-    <Teleport to="body">
-        <div class="modal" :class="{ 'modal-open': showDeleteModal }" role="dialog" aria-modal="true">
+    <Teleport v-if="showDeleteModal" to="body">
+        <div class="modal modal-open" role="dialog" aria-modal="true">
             <div class="modal-box max-w-sm">
                 <h2 class="text-lg font-semibold">Delete Category</h2>
                 <p class="mt-2 text-sm opacity-70">

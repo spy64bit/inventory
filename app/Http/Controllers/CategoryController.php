@@ -41,7 +41,7 @@ class CategoryController extends Controller
 
         $perPage = min((int) $request->input('per_page', 10), 100);
 
-        $categories = $query->paginate($perPage)->withQueryString();
+        $categories = $query->with('parent:id,name')->paginate($perPage)->withQueryString();
 
         return Inertia::render('Category/Index', [
             'categories' => $categories,
@@ -57,8 +57,12 @@ class CategoryController extends Controller
         $this->authorize('create', Category::class);
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:category,name'],
+            'name' => ['required', 'string', 'max:255', 'unique:categories,name'],
+            'parent_id' => ['nullable', 'integer', 'exists:categories,id'],
         ]);
+
+        // Generate slug from name
+        $validated['slug'] = strtolower(str_replace(' ', '-', $validated['name']));
 
         Category::create($validated);
 
@@ -73,7 +77,8 @@ class CategoryController extends Controller
         $this->authorize('update', $category);
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:category,name,'.$category->id],
+            'name' => ['required', 'string', 'max:255', 'unique:categories,name,'.$category->id],
+            'parent_id' => ['nullable', 'integer', 'exists:categories,id', 'not_in:'.$category->id],
         ]);
 
         $category->update($validated);
@@ -114,7 +119,7 @@ class CategoryController extends Controller
     {
         $search = $request->input('q');
 
-        $categories = Category::whereLike('name', '%'.$search.'%')
+        $categories = Category::where('name', 'like', $search.'%')
             ->orderBy('name')
             ->limit(10)
             ->get([
