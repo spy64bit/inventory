@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BulkDestroyProductRequest;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Supplier;
@@ -76,19 +79,9 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreProductRequest $request)
     {
-        $this->authorize('create', Product::class);
-
-        $validated = $request->validate([
-            'sku' => ['required', 'string', 'max:255', 'unique:products,sku'],
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'cost_price' => ['required', 'numeric', 'min:0'],
-            'reorder_level' => ['required', 'numeric', 'min:0'],
-            'supplier_id' => ['required', 'integer', 'exists:suppliers,id'],
-            'category_id' => ['required', 'integer', 'exists:categories,id'],
-        ]);
+        $validated = $request->validated();
 
         Product::create($validated);
 
@@ -120,21 +113,11 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Product $product)
+    public function update(UpdateProductRequest $request, Product $product)
     {
-        $this->authorize('update', $product);
-
         $saveAndClose = $request->query('save_and_close', false);
 
-        $validated = $request->validate([
-            'sku' => ['required', 'string', 'max:255', 'unique:products,sku,'.$product->id],
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'cost_price' => ['required', 'numeric', 'min:0'],
-            'reorder_level' => ['required', 'numeric', 'min:0'],
-            'supplier_id' => ['required', 'integer', 'exists:suppliers,id'],
-            'category_id' => ['required', 'integer', 'exists:categories,id'],
-        ]);
+        $validated = $request->validated();
 
         $product->update($validated);
 
@@ -160,14 +143,9 @@ class ProductController extends Controller
     /**
      * Remove multiple resources from storage.
      */
-    public function bulkDestroy(Request $request)
+    public function bulkDestroy(BulkDestroyProductRequest $request)
     {
-        $this->authorize('delete', Product::class);
-
-        $validated = $request->validate([
-            'ids' => ['required', 'array', 'min:1'],
-            'ids.*' => ['required', 'integer', 'exists:products,id'],
-        ]);
+        $validated = $request->validated();
 
         Product::destroy($validated['ids']);
 

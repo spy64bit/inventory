@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\InvalidPurchaseOrderStatusException;
+use App\Http\Requests\ReceivePurchaseOrderRequest;
+use App\Http\Requests\StorePurchaseOrderRequest;
+use App\Http\Requests\UpdatePurchaseOrderRequest;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
@@ -68,23 +71,9 @@ class PurchaseOrderController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StorePurchaseOrderRequest $request)
     {
-        $this->authorize('create', PurchaseOrder::class);
-
-        $data = $request->validate([
-            'supplier_id' => 'required|exists:suppliers,id',
-            'notes' => 'nullable|string|max:500',
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|distinct|exists:products,id',
-            'items.*.quantity_ordered' => 'required|numeric|min:0.01',
-            'items.*.unit_cost' => 'required|numeric|min:0.01',
-        ], [
-            'items.*.product_id.required' => 'Please select a product.',
-            'items.*.product_id.exists' => 'Please select a product.',
-            'items.*.product_id.distinct' => 'Duplicate products are not allowed.',
-            'items.*.unit_cost.min' => 'Unit cost must be at least 0.01.',
-        ]);
+        $data = $request->validated();
 
         $this->purchaseOrderService->create($data);
 
@@ -113,23 +102,9 @@ class PurchaseOrderController extends Controller
         ]);
     }
 
-    public function update(Request $request, PurchaseOrder $purchaseOrder)
+    public function update(UpdatePurchaseOrderRequest $request, PurchaseOrder $purchaseOrder)
     {
-        $this->authorize('update', $purchaseOrder);
-
-        $data = $request->validate([
-            'supplier_id' => 'required|exists:suppliers,id',
-            'notes' => 'nullable|string|max:500',
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|distinct|exists:products,id',
-            'items.*.quantity_ordered' => 'required|numeric|min:0.01',
-            'items.*.unit_cost' => 'required|numeric|min:0.01',
-        ], [
-            'items.*.product_id.required' => 'Please select a product.',
-            'items.*.product_id.exists' => 'Please select a product.',
-            'items.*.product_id.distinct' => 'Duplicate products are not allowed.',
-            'items.*.unit_cost.min' => 'Unit cost must be at least 0.01.',
-        ]);
+        $data = $request->validated();
 
         $this->purchaseOrderService->update($purchaseOrder, $data);
 
@@ -163,15 +138,9 @@ class PurchaseOrderController extends Controller
         return redirect()->back()->with('success', 'Purchase order dispatched to supplier.');
     }
 
-    public function receive(Request $request, PurchaseOrder $purchaseOrder)
+    public function receive(ReceivePurchaseOrderRequest $request, PurchaseOrder $purchaseOrder)
     {
-        $this->authorize('receive', $purchaseOrder);
-
-        $data = $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity_received' => 'required|numeric|min:0.01',
-        ]);
+        $data = $request->validated();
 
         try {
             $this->purchaseOrderService->receive($purchaseOrder, $data['items']);

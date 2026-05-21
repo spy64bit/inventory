@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BulkDestroySupplierRequest;
+use App\Http\Requests\StoreSupplierRequest;
+use App\Http\Requests\UpdateSupplierRequest;
 use App\Models\Supplier;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
@@ -52,13 +55,9 @@ class SupplierController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreSupplierRequest $request)
     {
-        $this->authorize('create', Supplier::class);
-
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:supplier,name'],
-        ]);
+        $validated = $request->validated();
 
         Supplier::create($validated);
 
@@ -68,13 +67,9 @@ class SupplierController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Supplier $supplier)
+    public function update(UpdateSupplierRequest $request, Supplier $supplier)
     {
-        $this->authorize('update', $supplier);
-
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:supplier,name,'.$supplier->id],
-        ]);
+        $validated = $request->validated();
 
         $supplier->update($validated);
 
@@ -96,14 +91,9 @@ class SupplierController extends Controller
     /**
      * Remove multiple resources from storage.
      */
-    public function bulkDestroy(Request $request)
+    public function bulkDestroy(BulkDestroySupplierRequest $request)
     {
-        $this->authorize('delete', Supplier::class);
-
-        $validated = $request->validate([
-            'ids' => ['required', 'array', 'min:1'],
-            'ids.*' => ['required', 'integer', 'exists:supplier,id'],
-        ]);
+        $validated = $request->validated();
 
         Supplier::destroy($validated['ids']);
 

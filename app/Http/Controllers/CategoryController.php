@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BulkDestroyCategoryRequest;
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Category;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
@@ -52,14 +55,10 @@ class CategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request)
     {
-        $this->authorize('create', Category::class);
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:categories,name'],
-            'parent_id' => ['nullable', 'integer', 'exists:categories,id'],
-        ]);
+        $validated = $request->validated();
 
         // Generate slug from name
         $validated['slug'] = strtolower(str_replace(' ', '-', $validated['name']));
@@ -72,14 +71,10 @@ class CategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Category $category)
+    public function update(UpdateCategoryRequest $request, Category $category)
     {
-        $this->authorize('update', $category);
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:categories,name,'.$category->id],
-            'parent_id' => ['nullable', 'integer', 'exists:categories,id', 'not_in:'.$category->id],
-        ]);
+        $validated = $request->validated();
 
         $category->update($validated);
 
@@ -101,14 +96,9 @@ class CategoryController extends Controller
     /**
      * Remove multiple resources from storage.
      */
-    public function bulkDestroy(Request $request)
+    public function bulkDestroy(BulkDestroyCategoryRequest $request)
     {
-        $this->authorize('delete', Category::class);
-
-        $validated = $request->validate([
-            'ids' => ['required', 'array', 'min:1'],
-            'ids.*' => ['required', 'integer', 'exists:category,id'],
-        ]);
+        $validated = $request->validated();
 
         Category::destroy($validated['ids']);
 

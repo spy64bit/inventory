@@ -41,6 +41,14 @@ class CategoryPolicy
     }
 
     /**
+     * Determine whether the user can delete any models.
+     */
+    public function deleteAny(User $user): bool
+    {
+        return $user->position === Position::Admin;
+    }
+
+    /**
      * Determine whether the user can delete the model.
      */
     public function delete(User $user, Category $category): bool
