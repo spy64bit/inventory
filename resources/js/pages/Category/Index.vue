@@ -99,6 +99,7 @@ function openEditModal(category: Category) {
 
 function closeFormModal() {
     showFormModal.value = false;
+    form.reset();
     form.clearErrors();
     categoryOptions.value = [];
 }
