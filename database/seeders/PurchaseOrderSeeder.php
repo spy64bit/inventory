@@ -3,8 +3,11 @@
 namespace Database\Seeders;
 
 use App\Enums\Position;
+use App\Enums\PurchaseOrderStatus;
+use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
+use App\Models\Supplier;
 use App\Models\User;
 use App\Services\PurchaseOrderService;
 use Illuminate\Database\Seeder;
@@ -20,17 +23,32 @@ class PurchaseOrderSeeder extends Seeder
     {
         $admin = User::where('position', Position::Admin)->first();
         $manager = User::where('position', Position::Manager)->first();
+        $supplierIds = Supplier::pluck('id');
+        $productIds = Product::pluck('id');
 
-        // Draft PO
+        $itemState = fn () => ['product_id' => $productIds->random()];
+
+        // Draft POs
         PurchaseOrder::factory()
-            ->has(PurchaseOrderItem::factory()->count(3), 'items')
-            ->create(['created_by' => $admin->id]);
+            ->has(PurchaseOrderItem::factory()->count(3)->state($itemState), 'items')
+            ->create([
+                'supplier_id' => $supplierIds->random(),
+                'created_by' => $admin->id,
+            ]);
+
+        PurchaseOrder::factory()
+            ->has(PurchaseOrderItem::factory()->count(2)->state($itemState), 'items')
+            ->create([
+                'supplier_id' => $supplierIds->random(),
+                'created_by' => $manager->id,
+            ]);
 
         // Approved PO
         PurchaseOrder::factory()
             ->approved()
-            ->has(PurchaseOrderItem::factory()->count(2), 'items')
+            ->has(PurchaseOrderItem::factory()->count(2)->state($itemState), 'items')
             ->create([
+                'supplier_id' => $supplierIds->random(),
                 'created_by' => $admin->id,
                 'approved_by' => $manager->id,
             ]);
@@ -38,29 +56,38 @@ class PurchaseOrderSeeder extends Seeder
         // Dispatched PO
         PurchaseOrder::factory()
             ->dispatched()
-            ->has(PurchaseOrderItem::factory()->count(4), 'items')
+            ->has(PurchaseOrderItem::factory()->count(4)->state($itemState), 'items')
             ->create([
+                'supplier_id' => $supplierIds->random(),
                 'created_by' => $admin->id,
                 'approved_by' => $manager->id,
             ]);
 
-        // Received PO — start as Dispatched so the service can transition it
+        // Received PO — use the service so stock movements are recorded
         $receivedPo = PurchaseOrder::factory()
             ->dispatched()
-            ->has(PurchaseOrderItem::factory()->count(3), 'items')
+            ->has(PurchaseOrderItem::factory()->count(3)->state($itemState), 'items')
             ->create([
+                'supplier_id' => $supplierIds->random(),
                 'created_by' => $admin->id,
                 'approved_by' => $manager->id,
             ]);
 
         $receivedPo->load('items');
-
-        // Set the authenticated user so stock movements get a proper user_id
         Auth::setUser($admin);
 
         $this->purchaseOrderService->receive($receivedPo, $receivedPo->items->map(fn ($item) => [
             'product_id' => $item->product_id,
             'quantity_received' => $item->quantity_ordered,
         ])->toArray());
+
+        // Cancelled PO
+        PurchaseOrder::factory()
+            ->has(PurchaseOrderItem::factory()->count(2)->state($itemState), 'items')
+            ->create([
+                'supplier_id' => $supplierIds->random(),
+                'created_by' => $manager->id,
+                'status' => PurchaseOrderStatus::Cancelled,
+            ]);
     }
 }

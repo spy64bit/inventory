@@ -3,9 +3,10 @@
 namespace Database\Seeders;
 
 use App\Enums\Position;
+use App\Models\Category;
 use App\Models\Product;
+use App\Models\Supplier;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -15,8 +16,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-
-        // admin
         User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@example.com',
@@ -24,7 +23,6 @@ class DatabaseSeeder extends Seeder
             'position' => Position::Admin,
         ]);
 
-        // manager
         User::factory()->create([
             'name' => 'Manager',
             'email' => 'manager@example.com',
@@ -32,7 +30,6 @@ class DatabaseSeeder extends Seeder
             'position' => Position::Manager,
         ]);
 
-        // staff
         User::factory()->create([
             'name' => 'Staff',
             'email' => 'staff@example.com',
@@ -43,9 +40,18 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CategorySeeder::class,
             SupplierSeeder::class,
-            PurchaseOrderSeeder::class,
         ]);
 
-        Product::factory(50)->create();
+        $categoryIds = Category::pluck('id');
+        $supplierIds = Supplier::pluck('id');
+
+        Product::factory(20)->create([
+            'category_id' => fn () => $categoryIds->random(),
+            'supplier_id' => fn () => $supplierIds->random(),
+        ]);
+
+        $this->call([
+            PurchaseOrderSeeder::class,
+        ]);
     }
 }
