@@ -1,10 +1,12 @@
 <script setup>
-import { Form } from "@inertiajs/vue3";
+import { Form, Head } from "@inertiajs/vue3";
 import Login from "@/actions/App/Http/Controllers/Login";
 
 </script>
 
 <template>
+
+  <Head title="Login" />
   <div
     class="flex min-h-screen items-center justify-center bg-linear-to-br from-gray-50 to-gray-100 px-4 dark:from-gray-900 dark:to-gray-950">
     <div class="w-full max-w-md space-y-5">

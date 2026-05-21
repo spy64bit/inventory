@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import DataTable from '@/components/DataTable.vue';
+import { Head } from '@inertiajs/vue3';
 import type { Column, Filters, PaginatedData } from '@/types/data-table';
 
 defineOptions({
@@ -49,6 +50,9 @@ function formatDate(value: string): string {
 </script>
 
 <template>
+
+    <Head title="Stock Movements" />
+
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mb-6 flex items-center justify-between">
             <h1 class="text-2xl font-bold">Stock Movements</h1>

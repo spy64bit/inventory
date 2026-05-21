@@ -7,8 +7,9 @@ import { destroy, bulkDestroy, edit } from '@/actions/App/Http/Controllers/Produ
 import { stockIn, stockOut } from '@/actions/App/Http/Controllers/StockMovementController';
 import type { Column, Filters, PaginatedData } from '@/types/data-table';
 import { toast } from '@/lib/toast';
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { Icon } from '@iconify/vue';
+import { Head } from '@inertiajs/vue3';
 
 defineOptions({
     layout: AppLayout,
@@ -220,6 +221,9 @@ onMounted(() => {
 </script>
 
 <template>
+
+    <Head title="Products" />
+
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mb-6 flex items-center justify-between">
             <h1 class="text-2xl font-bold">Products</h1>

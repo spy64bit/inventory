@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { update, index } from '@/actions/App/Http/Controllers/ProductController';
 import Combobox from '@/components/Combobox.vue';
 
@@ -43,6 +43,9 @@ function submit(saveAndClose = false) {
 </script>
 
 <template>
+
+    <Head title="Edit Product" />
+
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="max-w-2xl">
             <div class="mb-6">

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { Icon } from '@iconify/vue';
 import { toast } from '@/lib/toast';
 import PurchaseOrderController from '@/actions/App/Http/Controllers/PurchaseOrderController';
@@ -290,6 +290,9 @@ function submitEditForm(): void {
 </script>
 
 <template>
+
+    <Head title="Purchase Order" />
+
     <div class="grid grid-cols-[70%_30%] gap-6">
         <!-- supplier details -->
         <div class="card bg-base-100 border border-base-300 shadow-sm">

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import DataTable from '@/components/DataTable.vue';
-import { router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { store, update, destroy, bulkDestroy } from '@/actions/App/Http/Controllers/CategoryController';
 import type { Column, Filters, PaginatedData } from '@/types/data-table';
 import { ref, nextTick } from 'vue';
@@ -108,6 +108,8 @@ function formatDate(dateString: string) {
 </script>
 
 <template>
+
+    <Head title="Category" />
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mb-6 flex items-center justify-between">
             <h1 class="text-2xl font-bold">Categories</h1>

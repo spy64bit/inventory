@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import { Icon } from '@iconify/vue';
 import PurchaseOrderController from '@/actions/App/Http/Controllers/PurchaseOrderController';
 
@@ -95,6 +95,8 @@ function formatSubtotal(item: PurchaseOrderItem): string {
 </script>
 
 <template>
+
+    <Head title="Create Purchase Order" />
 
     <div class="grid grid-cols-[70%_30%] gap-6">
         <!-- supplier details -->

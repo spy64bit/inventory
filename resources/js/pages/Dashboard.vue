@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Link, WhenVisible } from '@inertiajs/vue3';
+import { Head, Link, WhenVisible } from '@inertiajs/vue3';
 import { Icon } from '@iconify/vue';
 
-defineOptions({ layout: AppLayout });
+defineOptions({
+    layout: AppLayout
+});
 
 type Supplier = { id: number; name: string } | null;
 type Category = { id: number; name: string } | null;
@@ -78,6 +80,8 @@ function formatDate(value: string): string {
 </script>
 
 <template>
+
+    <Head title="Dashboard" />
     <div class="p-6 space-y-6">
         <h1 class="text-2xl font-semibold">Dashboard</h1>
 

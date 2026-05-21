@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import DataTable from '@/components/DataTable.vue';
-import { Link } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { Icon } from '@iconify/vue';
 import { create, edit } from '@/actions/App/Http/Controllers/PurchaseOrderController';
 import type { Column, Filters, PaginatedData } from '@/types/data-table';
@@ -70,6 +70,9 @@ function formatDate(value: string | null): string {
 </script>
 
 <template>
+
+    <Head title="Purchase Orders" />
+
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mb-6 flex items-center justify-between">
             <h1 class="text-2xl font-bold">Purchase Orders</h1>
