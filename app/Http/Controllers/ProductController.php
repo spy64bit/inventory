@@ -49,8 +49,8 @@ class ProductController extends Controller
         $products = $query->paginate($perPage)->withQueryString();
 
         $total = $products->total();
-        $stock = floor($products->sum('current_stock'));
-        $lowOnStock = $products->where('current_stock', '<=', 'reorder_level')->count();
+        $stock = floor(Product::sum('current_stock'));
+        $lowOnStock = Product::withTrashed()->whereColumn('current_stock', '<=', 'reorder_level')->count();
 
         return Inertia::render('Product/Index', [
             'products' => $products,
