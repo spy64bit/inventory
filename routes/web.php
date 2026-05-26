@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Login;
 use App\Http\Controllers\Logout;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\SalesOrderController;
 // use App\Http\Controllers\Register;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SupplierController;
@@ -55,6 +57,16 @@ Route::group(['middleware' => 'auth'], function () {
         Route::patch('{purchaseOrder}/cancel', [PurchaseOrderController::class, 'cancel'])->name('cancel');
         Route::patch('{purchaseOrder}/close', [PurchaseOrderController::class, 'close'])->name('close');
         Route::post('{purchaseOrder}/receive', [PurchaseOrderController::class, 'receive'])->name('receive');
+    });
+
+    Route::resource('customer', CustomerController::class)->only(['index', 'store', 'update', 'destroy']);
+
+    Route::resource('sales-orders', SalesOrderController::class)->only(['index', 'create', 'store', 'edit', 'update']);
+
+    Route::prefix('sales-orders')->name('sales-orders.')->group(function () {
+        Route::patch('{salesOrder}/confirm', [SalesOrderController::class, 'confirm'])->name('confirm');
+        Route::patch('{salesOrder}/fulfill', [SalesOrderController::class, 'fulfill'])->name('fulfill');
+        Route::patch('{salesOrder}/cancel', [SalesOrderController::class, 'cancel'])->name('cancel');
     });
 
 });
