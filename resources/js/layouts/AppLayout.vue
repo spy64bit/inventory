@@ -25,6 +25,8 @@ const navigation = [
     { name: 'Suppliers', href: '/supplier', icon: "mdi:truck" },
     { name: 'Purchase Orders', href: '/purchase-orders', icon: "mdi:cart" },
     { name: 'Stock Movements', href: '/stock-movement', icon: "mdi:swap-horizontal" },
+    { name: 'Customers', href: '/customer', icon: "mdi:account-group" },
+    { name: 'Sales Orders', href: '/sales-orders', icon: "mdi:cash-register" },
 ];
 
 function isActive(href) {
