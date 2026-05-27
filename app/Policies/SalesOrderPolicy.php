@@ -37,17 +37,15 @@ class SalesOrderPolicy
      */
     public function update(User $user, SalesOrder $salesOrder): bool
     {
-        $editableStatuses = ['draft', 'confirmed'];
-
-        if (! in_array($salesOrder->status, $editableStatuses)) {
+        if (! in_array($salesOrder->status, ['draft'])) {
             return false;
         }
 
-        if ($user->position === Position::Staff) {
-            return $salesOrder->status === 'draft';
+        if (in_array($user->position, [Position::Admin, Position::Manager])) {
+            return true;
         }
 
-        return in_array($user->position, [Position::Admin, Position::Manager]);
+        return $salesOrder->created_by === $user->id;
     }
 
     /**
@@ -85,8 +83,15 @@ class SalesOrderPolicy
      */
     public function delete(User $user, SalesOrder $salesOrder): bool
     {
-        return $salesOrder->status === 'draft'
-            && in_array($user->position, [Position::Admin, Position::Manager]);
+        if ($salesOrder->status !== 'draft') {
+            return false;
+        }
+
+        if (in_array($user->position, [Position::Admin, Position::Manager])) {
+            return true;
+        }
+
+        return $salesOrder->created_by === $user->id;
     }
 
     /**

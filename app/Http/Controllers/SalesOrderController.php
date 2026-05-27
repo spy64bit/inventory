@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\InsufficientStockException;
 use App\Http\Requests\StoreSalesOrderRequest;
 use App\Http\Requests\UpdateSalesOrderRequest;
 use App\Models\Customer;
@@ -241,7 +242,7 @@ class SalesOrderController extends Controller
                     'fulfilled_at' => now(),
                 ]);
             });
-        } catch (\App\Exceptions\InsufficientStockException $e) {
+        } catch (InsufficientStockException $e) {
             return redirect()->back()->withErrors(['status' => $e->getMessage()]);
         }
 

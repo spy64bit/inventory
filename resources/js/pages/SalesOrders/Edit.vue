@@ -91,6 +91,8 @@ const form = useForm<SalesOrderForm>({
     })),
 });
 
+const canEditItems = computed(() => props.can.update);
+
 const selectedCustomer = computed(() =>
     props.customers.find((c) => c.id === form.customer_id) ?? null,
 );
@@ -110,6 +112,14 @@ const SO_STATUS_BADGE: Record<SalesOrderStatus, string> = {
 };
 
 const statusBadgeClass = computed(() => SO_STATUS_BADGE[props.salesOrder.status] ?? 'badge-ghost');
+
+const formattedCreatedAt = computed(() =>
+    new Date(props.salesOrder.created_at).toLocaleDateString('en-MY', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+    }),
+);
 
 const statusLabel = computed(() =>
     props.salesOrder.status.charAt(0).toUpperCase() + props.salesOrder.status.slice(1),
@@ -205,13 +215,20 @@ function cancelOrder(): void {
 
     <div class="px-4 py-6 sm:px-6 lg:px-8">
         <div class="mb-6 flex items-center justify-between">
-            <div class="flex items-center gap-3">
+            <div class="flex items-start gap-3">
                 <Link href="/sales-orders" class="btn btn-ghost btn-sm">
                     <Icon icon="heroicons:arrow-left" class="h-4 w-4" />
                     Back
                 </Link>
-                <h1 class="text-2xl font-bold">Sales Order #{{ salesOrder.id }}</h1>
-                <span class="badge" :class="statusBadgeClass">{{ statusLabel }}</span>
+                <div>
+                    <div class="flex items-center gap-3">
+                        <h1 class="text-2xl font-bold">Sales Order #{{ salesOrder.id }}</h1>
+                        <span class="badge" :class="statusBadgeClass">{{ statusLabel }}</span>
+                    </div>
+                    <p class="text-sm text-base-content/60 mt-1">
+                        Created by {{ salesOrder.created_by?.name ?? 'Unknown' }} &middot; {{ formattedCreatedAt }}
+                    </p>
+                </div>
             </div>
         </div>
 
@@ -313,7 +330,7 @@ function cancelOrder(): void {
             <div class="card-body">
                 <div class="flex items-center justify-between">
                     <h2 class="card-title">Sales Order Items</h2>
-                    <button v-if="can.update" type="button" class="btn btn-primary btn-sm" @click="addItem">
+                    <button v-if="canEditItems" type="button" class="btn btn-primary btn-sm" @click="addItem">
                         Add Item
                     </button>
                 </div>
@@ -332,12 +349,12 @@ function cancelOrder(): void {
                                 <th class="w-32">Quantity</th>
                                 <th class="w-40">Unit Price</th>
                                 <th class="w-32 text-right">Subtotal (RM)</th>
-                                <th v-if="can.update" class="w-16"></th>
+                                <th v-if="canEditItems" class="w-16"></th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-if="form.items.length === 0">
-                                <td :colspan="can.update ? 6 : 5" class="text-center text-base-content/60 py-6">
+                                <td :colspan="canEditItems ? 6 : 5" class="text-center text-base-content/60 py-6">
                                     No items added yet.
                                 </td>
                             </tr>
@@ -346,7 +363,7 @@ function cancelOrder(): void {
                                 <td>
                                     <select v-model="item.product_id" class="select select-bordered select-sm w-full"
                                         :class="{ 'select-error': form.errors[`items.${index}.product_id`] }"
-                                        :disabled="!can.update" @change="onProductSelected(item)">
+                                        :disabled="!canEditItems" @change="onProductSelected(item)">
                                         <option :value="0" disabled>Select a product</option>
                                         <option v-for="product in availableProducts(index)" :key="product.id"
                                             :value="product.id">
@@ -361,7 +378,7 @@ function cancelOrder(): void {
                                     <input v-model.number="item.quantity" type="number" min="1" step="0.01"
                                         class="input input-bordered input-sm w-full"
                                         :class="{ 'input-error': form.errors[`items.${index}.quantity`] }"
-                                        :disabled="!can.update" />
+                                        :disabled="!canEditItems" />
                                     <p v-if="form.errors[`items.${index}.quantity`]" class="text-error text-xs mt-1">
                                         {{ form.errors[`items.${index}.quantity`] }}
                                     </p>
@@ -370,7 +387,7 @@ function cancelOrder(): void {
                                     <input v-model="item.unit_price" type="number" step="0.01" min="0"
                                         class="input input-bordered input-sm w-full"
                                         :class="{ 'input-error': form.errors[`items.${index}.unit_price`] }"
-                                        :disabled="!can.update" />
+                                        :disabled="!canEditItems" />
                                     <p v-if="form.errors[`items.${index}.unit_price`]" class="text-error text-xs mt-1">
                                         {{ form.errors[`items.${index}.unit_price`] }}
                                     </p>
@@ -378,7 +395,7 @@ function cancelOrder(): void {
                                 <td class="text-right tabular-nums">
                                     {{ formatSubtotal(item) }}
                                 </td>
-                                <td v-if="can.update">
+                                <td v-if="canEditItems">
                                     <button type="button" class="btn btn-ghost btn-sm text-error"
                                         @click="removeItem(index)">
                                         <Icon icon="heroicons:x-mark" class="h-4 w-4" />
