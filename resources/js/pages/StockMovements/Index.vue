@@ -53,7 +53,7 @@ function formatDate(value: string): string {
 
     <Head title="Stock Movements" />
 
-    <div class="px-4 py-6 sm:px-6 lg:px-8">
+    <div>
         <div class="mb-6 flex items-center justify-between">
             <h1 class="text-2xl font-bold">Stock Movements</h1>
         </div>

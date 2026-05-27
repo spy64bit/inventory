@@ -97,7 +97,7 @@ function formatSubtotal(item: SalesOrderItemForm): string {
 
     <Head title="Create Sales Order" />
 
-    <div class="px-4 py-6 sm:px-6 lg:px-8">
+    <div>
         <div class="mb-6 flex items-center justify-between">
             <h1 class="text-2xl font-bold">Create Sales Order</h1>
             <Link href="/sales-orders" class="btn btn-ghost btn-sm">

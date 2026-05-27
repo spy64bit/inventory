@@ -213,7 +213,7 @@ function cancelOrder(): void {
 
     <Head :title="`Sales Order #${salesOrder.id}`" />
 
-    <div class="px-4 py-6 sm:px-6 lg:px-8">
+    <div>
         <div class="mb-6 flex items-center justify-between">
             <div class="flex items-start gap-3">
                 <Link href="/sales-orders" class="btn btn-ghost btn-sm">

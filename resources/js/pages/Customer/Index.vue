@@ -114,7 +114,7 @@ function formatDate(dateString: string) {
 
     <Head title="Customer" />
 
-    <div class="px-4 py-6 sm:px-6 lg:px-8">
+    <div>
         <div class="mb-6 flex items-center justify-between">
             <h1 class="text-2xl font-bold">Customers</h1>
             <button type="button" class="btn btn-primary" @click="openCreateModal">

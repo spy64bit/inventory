@@ -46,7 +46,7 @@ function submit(saveAndClose = false) {
 
     <Head title="Edit Product" />
 
-    <div class="px-4 py-6 sm:px-6 lg:px-8">
+    <div>
         <div class="max-w-2xl">
             <div class="mb-6">
                 <Link :href="index.url()" class="link link-hover text-base-content/60 text-sm">

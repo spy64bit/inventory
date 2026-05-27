@@ -71,7 +71,7 @@ function isActive(href) {
                     <div class="min-w-0 flex-1">
                         <p class="truncate text-sm font-medium leading-tight">{{ user.name }}</p>
                         <span class="badge badge-xs mt-0.5 capitalize" :class="roleBadgeClass">{{ user.position
-                            }}</span>
+                        }}</span>
                     </div>
                 </div>
                 <ul class="menu menu-md w-full">
@@ -98,7 +98,9 @@ function isActive(href) {
 
             <!-- Page content -->
             <main class="p-4 lg:p-6">
-                <slot />
+                <div class="px-4 py-6 sm:px-6 lg:px-8">
+                    <slot />
+                </div>
             </main>
         </div>
 
