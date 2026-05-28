@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Filters\CategoryFilter;
 use App\Http\Requests\BulkDestroyCategoryRequest;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
@@ -17,38 +18,15 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request, CategoryFilter $filter)
     {
         $this->authorize('viewAny', Category::class);
 
-        $filters = $request->only(['search', 'sort', 'direction', 'per_page']);
-
-        $query = Category::query();
-
-        if ($search = $request->input('search')) {
-            $query->where('name', 'like', '%'.$search.'%');
-        }
-
-        $sortColumn = $request->input('sort', 'id');
-        $sortDirection = $request->input('direction', 'desc');
-
-        $allowedSorts = ['id', 'name', 'created_at'];
-        if (! in_array($sortColumn, $allowedSorts)) {
-            $sortColumn = 'id';
-        }
-        if (! in_array($sortDirection, ['asc', 'desc'])) {
-            $sortDirection = 'desc';
-        }
-
-        $query->orderBy($sortColumn, $sortDirection);
-
-        $perPage = min((int) $request->input('per_page', 10), 100);
-
-        $categories = $query->with('parent:id,name')->paginate($perPage)->withQueryString();
+        $categories = $filter->apply(Category::query()->with('parent:id,name'));
 
         return Inertia::render('Category/Index', [
             'categories' => $categories,
-            'filters' => $filters,
+            'filters' => $filter->filters(),
         ]);
     }
 

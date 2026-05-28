@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Filters\SupplierFilter;
 use App\Http\Requests\BulkDestroySupplierRequest;
 use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
@@ -17,42 +18,15 @@ class SupplierController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request, SupplierFilter $filter)
     {
         $this->authorize('viewAny', Supplier::class);
 
-        $filters = $request->only(['search', 'sort', 'direction', 'per_page']);
-
-        $query = Supplier::query();
-
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', '%'.$search.'%')
-                    ->orWhere('email', 'like', '%'.$search.'%')
-                    ->orWhere('phone', 'like', '%'.$search.'%');
-            });
-        }
-
-        $sortColumn = $request->input('sort', 'id');
-        $sortDirection = $request->input('direction', 'desc');
-
-        $allowedSorts = ['id', 'name', 'email', 'lead_time_days', 'created_at'];
-        if (! in_array($sortColumn, $allowedSorts)) {
-            $sortColumn = 'id';
-        }
-        if (! in_array($sortDirection, ['asc', 'desc'])) {
-            $sortDirection = 'desc';
-        }
-
-        $query->orderBy($sortColumn, $sortDirection);
-
-        $perPage = min((int) $request->input('per_page', 10), 100);
-
-        $suppliers = $query->paginate($perPage)->withQueryString();
+        $suppliers = $filter->apply(Supplier::query());
 
         return Inertia::render('Supplier/Index', [
             'suppliers' => $suppliers,
-            'filters' => $filters,
+            'filters' => $filter->filters(),
         ]);
     }
 

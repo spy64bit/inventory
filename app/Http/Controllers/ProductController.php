@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Filters\ProductFilter;
 use App\Http\Requests\BulkDestroyProductRequest;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
@@ -19,45 +20,20 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request, ProductFilter $filter)
     {
         $this->authorize('viewAny', Product::class);
 
-        $filters = $request->only(['search', 'sort', 'direction', 'per_page']);
+        $products = $filter->apply(Product::query());
 
-        $query = Product::query();
-
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', '%'.$search.'%')
-                    ->orWhere('sku', 'like', '%'.$search.'%');
-            });
-        }
-
-        $sortColumn = $request->input('sort', 'id');
-        $sortDirection = $request->input('direction', 'desc');
-
-        $allowedSorts = ['id', 'sku', 'name', 'cost_price', 'reorder_level', 'created_at'];
-        if (! in_array($sortColumn, $allowedSorts)) {
-            $sortColumn = 'id';
-        }
-        if (! in_array($sortDirection, ['asc', 'desc'])) {
-            $sortDirection = 'desc';
-        }
-
-        $query->orderBy($sortColumn, $sortDirection);
-
-        $perPage = min((int) $request->input('per_page', 10), 100);
-
-        $products = $query->paginate($perPage)->withQueryString();
-
+        // stats
         $total = $products->total();
         $stock = floor(Product::sum('current_stock'));
         $lowOnStock = Product::withTrashed()->whereColumn('current_stock', '<=', 'reorder_level')->count();
 
         return Inertia::render('Product/Index', [
             'products' => $products,
-            'filters' => $filters,
+            'filters' => $filter->filters(),
             'stats' => [
                 'total' => $total,
                 'stock' => $stock,

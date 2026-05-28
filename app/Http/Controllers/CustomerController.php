@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Filters\CustomerFilter;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
@@ -17,39 +18,13 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request, CustomerFilter $filter)
     {
         $this->authorize('viewAny', Customer::class);
 
-        $filters = $request->only(['search', 'sort', 'direction', 'per_page']);
+        $customers = $filter->apply(Customer::query());
 
-        $query = Customer::query();
-
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', '%'.$search.'%')
-                    ->orWhere('email', 'like', '%'.$search.'%')
-                    ->orWhere('contact_no', 'like', '%'.$search.'%');
-            });
-        }
-
-        $sortColumn = $request->input('sort', 'id');
-        $sortDirection = $request->input('direction', 'desc');
-
-        $allowedSorts = ['id', 'name', 'email', 'contact_no', 'created_at'];
-        if (! in_array($sortColumn, $allowedSorts)) {
-            $sortColumn = 'id';
-        }
-        if (! in_array($sortDirection, ['asc', 'desc'])) {
-            $sortDirection = 'desc';
-        }
-
-        $query->orderBy($sortColumn, $sortDirection);
-
-        $perPage = min((int) $request->input('per_page', 10), 100);
-
-        $customers = $query->paginate($perPage)->withQueryString();
-
+        // add permissions to each customer
         $customers->getCollection()->transform(function (Customer $customer) {
             return array_merge($customer->toArray(), [
                 'can' => [
@@ -61,7 +36,7 @@ class CustomerController extends Controller
 
         return Inertia::render('Customer/Index', [
             'customers' => $customers,
-            'filters' => $filters,
+            'filters' => $filter->filters(),
             'can' => [
                 'create' => Auth::user()->can('create', Customer::class),
             ],
