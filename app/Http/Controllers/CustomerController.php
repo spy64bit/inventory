@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class CustomerController extends Controller
@@ -18,7 +19,7 @@ class CustomerController extends Controller
      */
     public function index(Request $request)
     {
-        // $this->authorize('viewAny', Customer::class);
+        $this->authorize('viewAny', Customer::class);
 
         $filters = $request->only(['search', 'sort', 'direction', 'per_page']);
 
@@ -49,9 +50,21 @@ class CustomerController extends Controller
 
         $customers = $query->paginate($perPage)->withQueryString();
 
+        $customers->getCollection()->transform(function (Customer $customer) {
+            return array_merge($customer->toArray(), [
+                'can' => [
+                    'update' => Auth::user()->can('update', $customer),
+                    'delete' => Auth::user()->can('delete', $customer),
+                ],
+            ]);
+        });
+
         return Inertia::render('Customer/Index', [
             'customers' => $customers,
             'filters' => $filters,
+            'can' => [
+                'create' => Auth::user()->can('create', Customer::class),
+            ],
         ]);
     }
 

@@ -40,6 +40,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CategorySeeder::class,
             SupplierSeeder::class,
+            CustomerSeeder::class,
         ]);
 
         $categoryIds = Category::pluck('id');

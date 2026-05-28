@@ -17,13 +17,21 @@ type Customer = {
     email: string;
     contact_no: string | null;
     address: string | null;
+    is_system: boolean;
     created_at: string;
     updated_at: string;
+    can: {
+        update: boolean;
+        delete: boolean;
+    };
 };
 
-defineProps<{
+const props = defineProps<{
     customers: PaginatedData<Customer>;
     filters: Filters;
+    can: {
+        create: boolean;
+    };
 }>();
 
 const columns: Column[] = [
@@ -117,7 +125,7 @@ function formatDate(dateString: string) {
     <div>
         <div class="mb-6 flex items-center justify-between">
             <h1 class="text-2xl font-bold">Customers</h1>
-            <button type="button" class="btn btn-primary" @click="openCreateModal">
+            <button v-if="props.can.create" type="button" class="btn btn-primary" @click="openCreateModal">
                 New Customer
             </button>
         </div>
@@ -146,11 +154,11 @@ function formatDate(dateString: string) {
 
             <template #actions="{ row }">
                 <div class="flex items-center justify-end gap-1">
-                    <button type="button" class="btn btn-sm btn-square btn-primary btn-soft"
+                    <button v-if="row.can.update" type="button" class="btn btn-sm btn-square btn-primary btn-soft"
                         @click="openEditModal(row)">
                         <Icon icon="heroicons:pencil" class="w-4 h-4" />
                     </button>
-                    <button type="button" class="btn btn-sm btn-square btn-error btn-soft"
+                    <button v-if="row.can.delete" type="button" class="btn btn-sm btn-square btn-error btn-soft"
                         @click="openDeleteModal(row)">
                         <Icon icon="heroicons:trash" class="h-4 w-4" />
                     </button>
