@@ -40,6 +40,7 @@ const columns: Column[] = [
     { key: 'status', label: 'Status', sortable: true },
     { key: 'created_by', label: 'Created By' },
     { key: 'created_at', label: 'Created At', sortable: true },
+    { key: 'approved_by', label: 'Approved By' },
 ];
 
 const statusBadgeClass: Record<string, string> = {
@@ -103,6 +104,11 @@ function formatDate(value: string | null): string {
 
             <template #cell-created_at="{ value }">
                 {{ formatDate(value as string) }}
+            </template>
+
+
+            <template #cell-approved_by="{ row }">
+                {{ row.approved_by?.name ?? '—' }}
             </template>
 
             <template #actions="{ row }">
