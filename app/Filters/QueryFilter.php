@@ -16,10 +16,19 @@ abstract class QueryFilter
 
     abstract protected function applySearch(Builder $query, string $search): Builder;
 
+    protected function allowedWith(): array
+    {
+        return [];
+    }
+
     public function apply(Builder $query): LengthAwarePaginator
     {
         if ($search = $this->sanitizeSearch()) {
             $query = $this->applySearch($query, $search);
+        }
+
+        if ($with = $this->allowedWith()) {
+            $query->with($with);
         }
 
         $query->orderBy($this->resolveSort(), $this->resolveDirection());
