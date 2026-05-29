@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\InvalidPurchaseOrderStatusException;
+use App\Filters\PurchaseOrderFilter;
 use App\Http\Requests\ReceivePurchaseOrderRequest;
 use App\Http\Requests\StorePurchaseOrderRequest;
 use App\Http\Requests\UpdatePurchaseOrderRequest;
@@ -23,43 +24,15 @@ class PurchaseOrderController extends Controller
         private readonly PurchaseOrderService $purchaseOrderService
     ) {}
 
-    public function index(Request $request)
+    public function index(Request $request, PurchaseOrderFilter $filter)
     {
         $this->authorize('viewAny', PurchaseOrder::class);
 
-        $filters = $request->validate([
-            'search' => 'nullable|string|max:255',
-            'sort' => 'nullable|in:id,status,created_at,submitted_at,received_at',
-            'direction' => 'nullable|in:asc,desc',
-            'per_page' => 'nullable|integer|in:10,25,50',
-        ]);
-
-        $sort = $filters['sort'] ?? 'created_at';
-        $direction = $filters['direction'] ?? 'desc';
-        $perPage = (int) ($filters['per_page'] ?? 10);
-        $search = $filters['search'] ?? null;
-
-        $purchaseOrders = PurchaseOrder::with(['supplier:id,name', 'createdBy:id,name', 'approvedBy:id,name'])
-            ->when($search, function ($query, $search): void {
-                $query->where(function ($q) use ($search): void {
-                    $q->where('id', 'like', "%{$search}%")
-                        ->orWhere('status', 'like', "%{$search}%")
-                        ->orWhere('notes', 'like', "%{$search}%")
-                        ->orWhereHas('supplier', fn ($s) => $s->where('name', 'like', "%{$search}%"));
-                });
-            })
-            ->orderBy($sort, $direction)
-            ->paginate($perPage)
-            ->withQueryString();
+        $purchaseOrders = $filter->apply(PurchaseOrder::query());
 
         return Inertia::render('PurchaseOrders/Index', [
             'purchaseOrders' => $purchaseOrders,
-            'filters' => [
-                'search' => $search,
-                'sort' => $sort,
-                'direction' => $direction,
-                'per_page' => $perPage,
-            ],
+            'filters' => $filter->filters(),
         ]);
     }
 

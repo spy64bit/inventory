@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\InsufficientStockException;
+use App\Filters\SalesOrderFilter;
 use App\Http\Requests\StoreSalesOrderRequest;
 use App\Http\Requests\UpdateSalesOrderRequest;
 use App\Models\Customer;
@@ -26,43 +27,15 @@ class SalesOrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request, SalesOrderFilter $filter)
     {
         $this->authorize('viewAny', SalesOrder::class);
 
-        $filters = $request->validate([
-            'search' => 'nullable|string|max:255',
-            'sort' => 'nullable|in:id,status,created_at,confirmed_at,fulfilled_at',
-            'direction' => 'nullable|in:asc,desc',
-            'per_page' => 'nullable|integer|in:10,25,50',
-        ]);
-
-        $sort = $filters['sort'] ?? 'created_at';
-        $direction = $filters['direction'] ?? 'desc';
-        $perPage = (int) ($filters['per_page'] ?? 10);
-        $search = $filters['search'] ?? null;
-
-        $salesOrders = SalesOrder::with(['customer:id,name', 'createdBy:id,name'])
-            ->when($search, function ($query, $search): void {
-                $query->where(function ($q) use ($search): void {
-                    $q->where('id', 'like', "%{$search}%")
-                        ->orWhere('status', 'like', "%{$search}%")
-                        ->orWhere('notes', 'like', "%{$search}%")
-                        ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', "%{$search}%"));
-                });
-            })
-            ->orderBy($sort, $direction)
-            ->paginate($perPage)
-            ->withQueryString();
+        $salesOrders = $filter->apply(SalesOrder::query());
 
         return Inertia::render('SalesOrders/Index', [
             'salesOrders' => $salesOrders,
-            'filters' => [
-                'search' => $search,
-                'sort' => $sort,
-                'direction' => $direction,
-                'per_page' => $perPage,
-            ],
+            'filters' => $filter->filters(),
         ]);
     }
 
