@@ -30,7 +30,8 @@ const navigation = [
 ];
 
 function isActive(href) {
-    return page.url === href;
+    const path = page.url.split('?')[0];
+    return path === href || path.startsWith(href + '/');
 }
 </script>
 
