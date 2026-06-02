@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\SalesOrderStatus;
 use App\Exceptions\InsufficientStockException;
 use App\Filters\SalesOrderFilter;
 use App\Http\Requests\StoreSalesOrderRequest;
@@ -62,7 +63,7 @@ class SalesOrderController extends Controller
         DB::transaction(function () use ($data): void {
             $salesOrder = SalesOrder::create([
                 'customer_id' => $data['customer_id'],
-                'status' => 'draft',
+                'status' => SalesOrderStatus::Draft,
                 'created_by' => Auth::id(),
                 'notes' => $data['notes'] ?? null,
             ]);
@@ -173,12 +174,12 @@ class SalesOrderController extends Controller
     {
         $this->authorize('confirm', $salesOrder);
 
-        if ($salesOrder->status !== 'draft') {
+        if ($salesOrder->status !== SalesOrderStatus::Draft) {
             return redirect()->back()->withErrors(['status' => 'Only draft sales orders can be confirmed.']);
         }
 
         $salesOrder->update([
-            'status' => 'confirmed',
+            'status' => SalesOrderStatus::Confirmed,
             'confirmed_at' => now(),
         ]);
 
@@ -192,7 +193,7 @@ class SalesOrderController extends Controller
     {
         $this->authorize('fulfill', $salesOrder);
 
-        if ($salesOrder->status !== 'confirmed') {
+        if ($salesOrder->status !== SalesOrderStatus::Confirmed) {
             return redirect()->back()->withErrors(['status' => 'Only confirmed sales orders can be fulfilled.']);
         }
 
@@ -211,7 +212,7 @@ class SalesOrderController extends Controller
                 }
 
                 $salesOrder->update([
-                    'status' => 'fulfilled',
+                    'status' => SalesOrderStatus::Fulfilled,
                     'fulfilled_at' => now(),
                 ]);
             });
@@ -229,11 +230,11 @@ class SalesOrderController extends Controller
     {
         $this->authorize('cancel', $salesOrder);
 
-        if (! in_array($salesOrder->status, ['draft', 'confirmed'], true)) {
+        if (! in_array($salesOrder->status, [SalesOrderStatus::Draft, SalesOrderStatus::Confirmed], true)) {
             return redirect()->back()->withErrors(['status' => 'Only draft or confirmed sales orders can be cancelled.']);
         }
 
-        $salesOrder->update(['status' => 'cancelled']);
+        $salesOrder->update(['status' => SalesOrderStatus::Cancelled]);
 
         return redirect()->back()->with('success', 'Sales order cancelled.');
     }

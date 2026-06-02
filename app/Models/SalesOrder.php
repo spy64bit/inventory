@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\SalesOrderStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +15,13 @@ class SalesOrder extends Model
 {
     /** @use HasFactory<\Database\Factories\SalesOrderFactory> */
     use HasFactory, SoftDeletes;
+
+    protected function casts(): array
+    {
+        return [
+            'status' => SalesOrderStatus::class,
+        ];
+    }
 
     public function customer(): BelongsTo
     {

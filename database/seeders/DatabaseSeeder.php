@@ -3,17 +3,11 @@
 namespace Database\Seeders;
 
 use App\Enums\Position;
-use App\Models\Category;
-use App\Models\Product;
-use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         User::factory()->create([
@@ -41,18 +35,9 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             SupplierSeeder::class,
             CustomerSeeder::class,
-        ]);
-
-        $categoryIds = Category::pluck('id');
-        $supplierIds = Supplier::pluck('id');
-
-        Product::factory(20)->create([
-            'category_id' => fn () => $categoryIds->random(),
-            'supplier_id' => fn () => $supplierIds->random(),
-        ]);
-
-        $this->call([
-            PurchaseOrderSeeder::class,
+            ProductSeeder::class,       // depends on categories + suppliers
+            PurchaseOrderSeeder::class, // depends on products
+            SalesOrderSeeder::class,    // depends on products + customers
         ]);
     }
 }

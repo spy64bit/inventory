@@ -8,22 +8,20 @@ use Illuminate\Support\Str;
 
 class CategorySeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $categories = [
-            'Electronics' => ['Phones', 'Laptops', 'Accessories'],
-            'Food & Beverage' => ['Dry Goods', 'Beverages', 'Snacks'],
-            'Office Supplies' => ['Stationery', 'Furniture', 'Equipment'],
-            'Clothing' => ['Men', 'Women', 'Kids'],
+            'Beverages' => ['Mineral Water', 'Soft Drinks', 'Coffee & Tea'],
+            'Snacks & Food' => ['Biscuits', 'Instant Noodles', 'Canned Goods'],
+            'Office Supplies' => ['Paper & Notebooks', 'Pens & Markers', 'Files & Folders'],
+            'Cleaning' => ['Detergents', 'Disinfectants', 'Bin Liners'],
         ];
 
         foreach ($categories as $parent => $children) {
             $parentCategory = Category::create([
                 'name' => $parent,
                 'slug' => Str::slug($parent),
+                'parent_id' => null,
             ]);
 
             foreach ($children as $child) {
