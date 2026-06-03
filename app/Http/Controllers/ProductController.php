@@ -26,6 +26,15 @@ class ProductController extends Controller
 
         $products = $filter->apply(Product::query());
 
+        $products->getCollection()->transform(function (Product $product) use ($request) {
+            return array_merge($product->toArray(), [
+                'can' => [
+                    'stock_in' => $request->user()->can('stockIn', $product),
+                    'stock_out' => $request->user()->can('stockOut', $product),
+                ],
+            ]);
+        });
+
         // stats
         $total = $products->total();
         $stock = floor(Product::sum('current_stock'));

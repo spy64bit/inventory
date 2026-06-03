@@ -25,6 +25,10 @@ type Product = {
     current_stock: number;
     created_at: string;
     updated_at: string;
+    can: {
+        stock_in: boolean;
+        stock_out: boolean;
+    };
 };
 
 const props = defineProps<{
@@ -253,10 +257,12 @@ onMounted(() => {
 
             <template #actions="{ row }">
                 <div class="flex items-center justify-end gap-2">
-                    <button type="button" class="btn btn-sm btn-success btn-soft" @click="openDialog('stockIn', row)">
+                    <button v-if="row.can.stock_in" type="button" class="btn btn-sm btn-success btn-soft"
+                        @click="openDialog('stockIn', row)">
                         In
                     </button>
-                    <button type="button" class="btn btn-sm btn-error btn-soft" @click="openDialog('stockOut', row)">
+                    <button v-if="row.can.stock_out" type="button" class="btn btn-sm btn-error btn-soft"
+                        @click="openDialog('stockOut', row)">
                         Out
                     </button>
                     <Link :href="edit.url(row.id)" class="btn btn-sm btn-square btn-warning btn-soft" aria-label="Edit"

@@ -25,12 +25,12 @@ class UpdateProductRequest extends FormRequest
         $product = $this->route('product');
 
         return [
-            'sku' => ['required', 'string', 'max:255', 'unique:products,sku,'.$product->id],
+            'sku' => ['required', 'string', 'max:50', 'unique:products,sku,'.$product->id],
             'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'description' => ['nullable', 'string', 'max:500'],
             'cost_price' => ['required', 'numeric', 'min:0'],
             'selling_price' => ['required', 'numeric', 'min:0'],
-            'unit_of_measure' => ['required', 'string', 'max:255'],
+            'unit_of_measure' => ['required', 'string', 'max:50'],
             'reorder_level' => ['required', 'numeric', 'min:0'],
             'supplier_id' => ['required', 'integer', 'exists:suppliers,id'],
             'category_id' => ['required', 'integer', 'exists:categories,id'],

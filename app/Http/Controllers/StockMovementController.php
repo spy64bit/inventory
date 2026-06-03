@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AdminStockInRequest;
+use App\Http\Requests\AdminStockOutRequest;
 use App\Exceptions\InsufficientStockException;
 use App\Models\Product;
 use App\Models\StockMovement;
@@ -59,13 +61,9 @@ class StockMovementController extends Controller
         ]);
     }
 
-    public function stockIn(Request $request, Product $product)
+    public function stockIn(AdminStockInRequest $request, Product $product)
     {
-        $data = $request->validate([
-            'quantity' => 'required|numeric|min:0.01',
-            'unit_cost' => 'required|numeric|min:0.01',
-            'remarks' => 'nullable|string|max:255',
-        ]);
+        $data = $request->validated();
 
         $this->stockMovementService->stockIn(
             $product,
@@ -81,12 +79,9 @@ class StockMovementController extends Controller
         return redirect()->back()->with('success', 'Stock added successfully.');
     }
 
-    public function stockOut(Request $request, Product $product)
+    public function stockOut(AdminStockOutRequest $request, Product $product)
     {
-        $data = $request->validate([
-            'quantity' => 'required|numeric|min:0.01',
-            'remarks' => 'nullable|string|max:255',
-        ]);
+        $data = $request->validated();
 
         try {
             $this->stockMovementService->stockOut(

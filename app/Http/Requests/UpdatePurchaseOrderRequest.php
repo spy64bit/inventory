@@ -25,7 +25,7 @@ class UpdatePurchaseOrderRequest extends FormRequest
         return [
             'supplier_id' => ['required', 'exists:suppliers,id'],
             'notes' => ['nullable', 'string', 'max:500'],
-            'items' => ['required', 'array', 'min:1'],
+            'items' => ['required', 'array', 'min:1', 'max:100'],
             'items.*.product_id' => ['required', 'distinct', 'exists:products,id'],
             'items.*.quantity_ordered' => ['required', 'numeric', 'min:0.01'],
             'items.*.unit_cost' => ['required', 'numeric', 'min:0.01'],

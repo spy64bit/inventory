@@ -57,6 +57,22 @@ class ProductPolicy
     }
 
     /**
+     * Determine whether the user can stock in a product.
+     */
+    public function stockIn(User $user, Product $product): bool
+    {
+        return $user->position === Position::Admin;
+    }
+
+    /**
+     * Determine whether the user can stock out a product.
+     */
+    public function stockOut(User $user, Product $product): bool
+    {
+        return $user->position === Position::Admin;
+    }
+
+    /**
      * Determine whether the user can restore the model.
      */
     public function restore(User $user, Product $product): bool
