@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\Position;
+use App\Enums\SalesOrderStatus;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\SalesOrder;
@@ -20,59 +21,53 @@ class SalesOrderSeeder extends Seeder
 
         $customers = Customer::where('is_system', false)->pluck('id');
         $walkin = Customer::where('is_system', true)->first();
-        $productIds = Product::pluck('id');
+        $products = Product::pluck('id')->shuffle();
 
-        $itemState = fn () => ['product_id' => $productIds->random()];
+        $now = now();
 
-        // 2 x Draft — staff creating orders, not yet confirmed
-        SalesOrder::factory()
-            ->has(SalesOrderItem::factory()->count(2)->state($itemState), 'items')
-            ->create(['customer_id' => $customers->random(), 'created_by' => $staff->id]);
+        $makeItems = fn (array $productIds) => collect($productIds)->map(fn ($id, $index) => [
+            'product_id' => $id,
+            'quantity' => [1, 2, 5, 3, 10, 4, 2, 6][$index % 8],
+            'unit_price' => [8.90, 25.00, 6.50, 18.00, 5.90, 30.00, 12.00, 45.00][$index % 8],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ])->all();
 
-        SalesOrder::factory()
-            ->has(SalesOrderItem::factory()->count(3)->state($itemState), 'items')
-            ->create(['customer_id' => $customers->random(), 'created_by' => $manager->id]);
+        $insert = function (SalesOrder $so, array $productIds) use ($makeItems) {
+            SalesOrderItem::insert(
+                collect($makeItems($productIds))
+                    ->map(fn ($item) => array_merge($item, ['sales_order_id' => $so->id]))
+                    ->all()
+            );
+        };
 
-        // 2 x Confirmed — approved, awaiting fulfillment
-        SalesOrder::factory()
-            ->confirmed()
-            ->has(SalesOrderItem::factory()->count(2)->state($itemState), 'items')
-            ->create(['customer_id' => $customers->random(), 'created_by' => $staff->id]);
+        // 2 x Draft
+        $so = SalesOrder::create(['customer_id' => $customers->random(), 'status' => SalesOrderStatus::Draft, 'created_by' => $staff->id, 'notes' => null, 'created_at' => $now, 'updated_at' => $now]);
+        $insert($so, $products->slice(0, 2)->all());
 
-        SalesOrder::factory()
-            ->confirmed()
-            ->has(SalesOrderItem::factory()->count(4)->state($itemState), 'items')
-            ->create(['customer_id' => $customers->random(), 'created_by' => $admin->id]);
+        $so = SalesOrder::create(['customer_id' => $customers->random(), 'status' => SalesOrderStatus::Draft, 'created_by' => $manager->id, 'notes' => null, 'created_at' => $now, 'updated_at' => $now]);
+        $insert($so, $products->slice(2, 3)->all());
 
-        // 2 x Fulfilled — completed orders
-        SalesOrder::factory()
-            ->fulfilled()
-            ->has(SalesOrderItem::factory()->count(3)->state($itemState), 'items')
-            ->create(['customer_id' => $customers->random(), 'created_by' => $staff->id]);
+        // 2 x Confirmed
+        $so = SalesOrder::create(['customer_id' => $customers->random(), 'status' => SalesOrderStatus::Confirmed, 'created_by' => $staff->id, 'confirmed_at' => $now, 'notes' => null, 'created_at' => $now, 'updated_at' => $now]);
+        $insert($so, $products->slice(5, 2)->all());
 
-        SalesOrder::factory()
-            ->fulfilled()
-            ->has(SalesOrderItem::factory()->count(2)->state($itemState), 'items')
-            ->create(['customer_id' => $customers->random(), 'created_by' => $manager->id]);
+        $so = SalesOrder::create(['customer_id' => $customers->random(), 'status' => SalesOrderStatus::Confirmed, 'created_by' => $admin->id, 'confirmed_at' => $now, 'notes' => null, 'created_at' => $now, 'updated_at' => $now]);
+        $insert($so, $products->slice(7, 4)->all());
 
-        // 1 x Walk-in cash sale — fulfilled immediately
-        SalesOrder::factory()
-            ->fulfilled()
-            ->has(SalesOrderItem::factory()->count(2)->state($itemState), 'items')
-            ->create([
-                'customer_id' => $walkin->id,
-                'created_by' => $staff->id,
-                'notes' => 'Cash sale, no invoice required.',
-            ]);
+        // 2 x Fulfilled
+        $so = SalesOrder::create(['customer_id' => $customers->random(), 'status' => SalesOrderStatus::Fulfilled, 'created_by' => $staff->id, 'confirmed_at' => $now, 'fulfilled_at' => $now, 'notes' => null, 'created_at' => $now, 'updated_at' => $now]);
+        $insert($so, $products->slice(11, 3)->all());
+
+        $so = SalesOrder::create(['customer_id' => $customers->random(), 'status' => SalesOrderStatus::Fulfilled, 'created_by' => $manager->id, 'confirmed_at' => $now, 'fulfilled_at' => $now, 'notes' => null, 'created_at' => $now, 'updated_at' => $now]);
+        $insert($so, $products->slice(14, 2)->all());
+
+        // 1 x Walk-in
+        $so = SalesOrder::create(['customer_id' => $walkin->id, 'status' => SalesOrderStatus::Fulfilled, 'created_by' => $staff->id, 'confirmed_at' => $now, 'fulfilled_at' => $now, 'notes' => 'Cash sale, no invoice required.', 'created_at' => $now, 'updated_at' => $now]);
+        $insert($so, $products->slice(16, 2)->all());
 
         // 1 x Cancelled
-        SalesOrder::factory()
-            ->cancelled()
-            ->has(SalesOrderItem::factory()->count(2)->state($itemState), 'items')
-            ->create([
-                'customer_id' => $customers->random(),
-                'created_by' => $staff->id,
-                'notes' => 'Customer cancelled — out of budget.',
-            ]);
+        $so = SalesOrder::create(['customer_id' => $customers->random(), 'status' => SalesOrderStatus::Cancelled, 'created_by' => $staff->id, 'notes' => 'Customer cancelled — out of budget.', 'created_at' => $now, 'updated_at' => $now]);
+        $insert($so, $products->slice(18, 2)->all());
     }
 }

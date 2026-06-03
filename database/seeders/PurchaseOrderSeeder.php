@@ -23,78 +23,128 @@ class PurchaseOrderSeeder extends Seeder
     {
         $admin = User::where('position', Position::Admin)->first();
         $manager = User::where('position', Position::Manager)->first();
-        $supplierIds = Supplier::pluck('id');
-        $productIds = Product::pluck('id');
+        $now = now();
 
-        $makeItems = function (int $count) use ($productIds): array {
-            return $productIds->shuffle()->take($count)->values()->map(fn ($id) => [
-                'product_id' => $id,
-            ])->all();
-        };
+        $suppliers = Supplier::pluck('id');
+        $products = Product::pluck('id')->shuffle();
 
-        // Draft POs
-        PurchaseOrder::factory()
-            ->has(PurchaseOrderItem::factory()->count(3)->sequence(...$makeItems(3)), 'items')
-            ->create([
-                'supplier_id' => $supplierIds->random(),
-                'created_by' => $admin->id,
-            ]);
+        // Helper to build PO items
+        $makeItems = fn (array $productIds) => collect($productIds)->map(fn ($id, $index) => [
+            'product_id' => $id,
+            'quantity_ordered' => [10, 20, 50, 100, 25, 30, 15, 40][$index % 8],
+            'quantity_received' => 0,
+            'unit_cost' => [12.50, 25.00, 8.90, 45.00, 18.00, 33.50, 7.00, 60.00][$index % 8],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
 
-        PurchaseOrder::factory()
-            ->has(PurchaseOrderItem::factory()->count(2)->sequence(...$makeItems(2)), 'items')
-            ->create([
-                'supplier_id' => $supplierIds->random(),
-                'created_by' => $manager->id,
-            ]);
+        // 1. Draft PO — Admin
+        $draft1 = PurchaseOrder::create([
+            'supplier_id' => $suppliers->random(),
+            'status' => PurchaseOrderStatus::Draft,
+            'created_by' => $admin->id,
+            'notes' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        PurchaseOrderItem::insert(
+            collect($makeItems($products->take(3)->all()))
+                ->map(fn ($item) => array_merge($item, ['purchase_order_id' => $draft1->id]))
+                ->all()
+        );
 
-        // Approved PO
-        PurchaseOrder::factory()
-            ->approved()
-            ->has(PurchaseOrderItem::factory()->count(2)->sequence(...$makeItems(2)), 'items')
-            ->create([
-                'supplier_id' => $supplierIds->random(),
-                'created_by' => $admin->id,
-                'approved_by' => $manager->id,
-            ]);
+        // 2. Draft PO — Manager
+        $draft2 = PurchaseOrder::create([
+            'supplier_id' => $suppliers->random(),
+            'status' => PurchaseOrderStatus::Draft,
+            'created_by' => $manager->id,
+            'notes' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        PurchaseOrderItem::insert(
+            collect($makeItems($products->slice(3, 2)->all()))
+                ->map(fn ($item) => array_merge($item, ['purchase_order_id' => $draft2->id]))
+                ->all()
+        );
 
-        // Dispatched PO
-        PurchaseOrder::factory()
-            ->dispatched()
-            ->has(PurchaseOrderItem::factory()->count(4)->sequence(...$makeItems(4)), 'items')
-            ->create([
-                'supplier_id' => $supplierIds->random(),
-                'created_by' => $admin->id,
-                'approved_by' => $manager->id,
-            ]);
+        // 3. Approved PO
+        $approved = PurchaseOrder::create([
+            'supplier_id' => $suppliers->random(),
+            'status' => PurchaseOrderStatus::Approved,
+            'created_by' => $admin->id,
+            'approved_by' => $manager->id,
+            'approved_at' => $now,
+            'notes' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        PurchaseOrderItem::insert(
+            collect($makeItems($products->slice(5, 2)->all()))
+                ->map(fn ($item) => array_merge($item, ['purchase_order_id' => $approved->id]))
+                ->all()
+        );
 
-        // Received PO — goes through the service so stock movements are recorded
-        $receivedPo = PurchaseOrder::factory()
-            ->dispatched()
-            ->has(PurchaseOrderItem::factory()->count(3)->sequence(...$makeItems(3)), 'items')
-            ->create([
-                'supplier_id' => $supplierIds->random(),
-                'created_by' => $admin->id,
-                'approved_by' => $manager->id,
-            ]);
+        // 4. Dispatched PO
+        $dispatched = PurchaseOrder::create([
+            'supplier_id' => $suppliers->random(),
+            'status' => PurchaseOrderStatus::Dispatched,
+            'created_by' => $admin->id,
+            'approved_by' => $manager->id,
+            'approved_at' => $now,
+            'dispatched_at' => $now,
+            'notes' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        PurchaseOrderItem::insert(
+            collect($makeItems($products->slice(7, 4)->all()))
+                ->map(fn ($item) => array_merge($item, ['purchase_order_id' => $dispatched->id]))
+                ->all()
+        );
 
-        $receivedPo->load('items');
+        // 5. Received PO — goes through service so stock movements are recorded
+        $toReceive = PurchaseOrder::create([
+            'supplier_id' => $suppliers->random(),
+            'status' => PurchaseOrderStatus::Dispatched,
+            'created_by' => $admin->id,
+            'approved_by' => $manager->id,
+            'approved_at' => $now,
+            'dispatched_at' => $now,
+            'notes' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        PurchaseOrderItem::insert(
+            collect($makeItems($products->slice(11, 3)->all()))
+                ->map(fn ($item) => array_merge($item, ['purchase_order_id' => $toReceive->id]))
+                ->all()
+        );
+
+        $toReceive->load('items');
         Auth::setUser($admin);
 
         $this->purchaseOrderService->receive(
-            $receivedPo,
-            $receivedPo->items->map(fn ($item) => [
+            $toReceive,
+            $toReceive->items->map(fn ($item) => [
                 'product_id' => $item->product_id,
                 'quantity_received' => $item->quantity_ordered,
             ])->toArray()
         );
 
-        // Cancelled PO
-        PurchaseOrder::factory()
-            ->has(PurchaseOrderItem::factory()->count(2)->sequence(...$makeItems(2)), 'items')
-            ->create([
-                'supplier_id' => $supplierIds->random(),
-                'created_by' => $manager->id,
-                'status' => PurchaseOrderStatus::Cancelled,
-            ]);
+        // 6. Cancelled PO
+        $cancelled = PurchaseOrder::create([
+            'supplier_id' => $suppliers->random(),
+            'status' => PurchaseOrderStatus::Cancelled,
+            'created_by' => $manager->id,
+            'notes' => 'Supplier unavailable.',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        PurchaseOrderItem::insert(
+            collect($makeItems($products->slice(14, 2)->all()))
+                ->map(fn ($item) => array_merge($item, ['purchase_order_id' => $cancelled->id]))
+                ->all()
+        );
     }
 }
