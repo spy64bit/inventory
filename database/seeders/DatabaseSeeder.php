@@ -10,25 +10,37 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'password' => bcrypt('password'),
-            'position' => Position::Admin,
-        ]);
-
-        User::factory()->create([
-            'name' => 'Manager',
-            'email' => 'manager@example.com',
-            'password' => bcrypt('password'),
-            'position' => Position::Manager,
-        ]);
-
-        User::factory()->create([
-            'name' => 'Staff',
-            'email' => 'staff@example.com',
-            'password' => bcrypt('password'),
-            'position' => Position::Staff,
+        User::insert([
+            [
+                'name' => 'Admin',
+                'email' => 'admin@example.com',
+                'password' => bcrypt('password'),
+                'position' => Position::Admin,
+                'email_verified_at' => now(),
+                'remember_token' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Manager',
+                'email' => 'manager@example.com',
+                'password' => bcrypt('password'),
+                'position' => Position::Manager,
+                'email_verified_at' => now(),
+                'remember_token' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Staff',
+                'email' => 'staff@example.com',
+                'password' => bcrypt('password'),
+                'position' => Position::Staff,
+                'email_verified_at' => now(),
+                'remember_token' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
 
         $this->call([
