@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('purchase_orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('supplier_id')->constrained()->onDelete('restrict');
+            $table->foreignId('supplier_id')->nullable()->constrained()->onDelete('restrict');
             $table->enum('status', [
                 'draft',
                 'approved',
