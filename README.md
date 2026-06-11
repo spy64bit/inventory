@@ -27,7 +27,7 @@ Type plain-language commands and the AI will interpret them, show a confirmation
 | Edit product          | "Update price of mineral water to 1.80"                |
 | Check stock           | "How many staples do we have?"                         |
 
-> **Requires** `GEMINI_API_KEY` in `.env` (model: `gemini-2.0-flash`).
+> **Requires** `GEMINI_API_KEY`, `AI_PROVIDER`, and `AI_MODEL` in `.env`.
 
 ## Tech Stack
 
@@ -51,10 +51,12 @@ php artisan key:generate
 php artisan migrate --seed
 ```
 
-Add your Gemini API key to `.env` to enable the AI Assistant:
+Add the following to `.env` to enable the AI Assistant:
 
 ```env
 GEMINI_API_KEY=your-key-here
+AI_PROVIDER=gemini
+AI_MODEL=gemini-2.0-flash
 ```
 
 ### Demo Users
