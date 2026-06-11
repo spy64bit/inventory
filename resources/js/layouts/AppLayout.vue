@@ -27,6 +27,7 @@ const navigation = [
     { name: 'Stock Movements', href: '/stock-movement', icon: "mdi:swap-horizontal" },
     { name: 'Customers', href: '/customer', icon: "mdi:account-group" },
     { name: 'Sales Orders', href: '/sales-orders', icon: "mdi:cash-register" },
+    { name: 'AI Assistant', href: '/ai-assistant', icon: "mdi:robot-excited" },
 ];
 
 function isActive(href) {
@@ -72,7 +73,7 @@ function isActive(href) {
                     <div class="min-w-0 flex-1">
                         <p class="truncate text-sm font-medium leading-tight">{{ user.name }}</p>
                         <span class="badge badge-xs mt-0.5 capitalize" :class="roleBadgeClass">{{ user.position
-                        }}</span>
+                            }}</span>
                     </div>
                 </div>
                 <ul class="menu menu-md w-full">

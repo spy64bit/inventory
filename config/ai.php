@@ -13,7 +13,8 @@ return [
     |
     */
 
-    'default' => 'openai',
+    'default' => env('AI_PROVIDER', 'gemini'),
+    'model' => env('AI_MODEL', 'gemini-2.0-flash'),
     'default_for_images' => 'gemini',
     'default_for_audio' => 'openai',
     'default_for_transcription' => 'openai',

@@ -5,16 +5,36 @@ A full-stack inventory management system built with Laravel, Vue.js 3, and Inert
 ## Features
 
 - **Products, Categories, Suppliers** — CRUD with search, sort, pagination, and bulk delete
+- **Customers** — Customer management (create, edit, delete)
 - **Stock Movements** — Stock in / out with transactional safety and locking
 - **Purchase Orders** — Full lifecycle: Draft → Approved → Dispatched → Received → Closed (or Cancelled), with partial receipts
+- **Sales Orders** — Full lifecycle: Draft → Confirmed → Fulfilled (or Cancelled), with stock deduction on fulfillment
 - **Dashboard** — KPIs, low-stock alerts, recent movements, recent orders
 - **Auth & Roles** — Login + role-based authorization (Admin, Manager, Staff)
+- **AI Assistant** — Natural-language inventory commands powered by Google Gemini; parse intent, confirm, then execute
+
+## AI Assistant
+
+![AI Assistant Demo](docs/ai-assistant-demo.gif)
+
+Type plain-language commands and the AI will interpret them, show a confirmation card with resolved product names, and execute on approval. Supports:
+
+| Command               | Example                                                |
+| --------------------- | ------------------------------------------------------ |
+| Create purchase order | "Order 10 mineral water and 5 staples from supplier X" |
+| Create sales order    | "Sell 3 sticky notes and 2 pens to customer Y"         |
+| Add product           | "Add new product: Hotdog 300g, price 2.50, cost 1.50"  |
+| Edit product          | "Update price of mineral water to 1.80"                |
+| Check stock           | "How many staples do we have?"                         |
+
+> **Requires** `GEMINI_API_KEY` in `.env` (model: `gemini-2.0-flash`).
 
 ## Tech Stack
 
 - **Backend:** PHP 8.3, Laravel 13, Inertia Laravel v3, Wayfinder
 - **Frontend:** Vue 3, Inertia Vue v3, TypeScript, Tailwind CSS v4, daisyUI v5, Vite
-- **Tooling:** Pint, ESLint, Prettier, vue-tsc, PHPUnit
+- **AI:** Laravel AI SDK v0, Google Gemini
+- **Tooling:** Pint, ESLint, Prettier, vue-tsc, Pest / PHPUnit
 
 ## Setup
 
@@ -29,6 +49,12 @@ php artisan key:generate
 
 # Database
 php artisan migrate --seed
+```
+
+Add your Gemini API key to `.env` to enable the AI Assistant:
+
+```env
+GEMINI_API_KEY=your-key-here
 ```
 
 ### Demo Users
@@ -61,21 +87,26 @@ pnpm build:ssr     # with SSR
 
 ```
 app/
-  Http/Controllers/   # Resource + auth controllers
+  Ai/Agents/          # InventoryCommandAgent (Gemini structured output)
+  Http/Controllers/   # Resource + auth + AI assistant controllers
   Models/             # Eloquent models
-  Services/           # PurchaseOrderService, StockMovementService
+  Services/           # AiAssistantService, PurchaseOrderService, StockMovementService
   Policies/           # Role-based authorization
-  Enums/              # Position, PurchaseOrderStatus
+  Enums/              # Position, PurchaseOrderStatus, SalesOrderStatus
+  Filters/            # Query filters (product, category, supplier, customer, orders)
 resources/js/
-  pages/              # Inertia pages
+  pages/              # Inertia pages (Dashboard, Product, Category, Supplier, Customer,
+  |                   #   PurchaseOrders, SalesOrders, StockMovements, AiAssistant)
   components/         # Shared Vue components
   layouts/            # AppLayout
 routes/web.php        # All routes
+doc/                  # Screenshots and demo GIFs
 ```
 
 ## Architecture Decisions
 
 - **Denormalized `current_stock`** — Stored directly on the product for fast reads, updated via transactions on every stock movement
-- **PO cancellation over deletion** — Purchase orders are cancelled not deleted to preserve audit trail integrity
-- **Context-aware PO view** — Show page renders inline editing for draft/approved states, read-only for completed states
+- **PO / SO cancellation over deletion** — Orders are cancelled not deleted to preserve audit trail integrity
+- **Context-aware order view** — Show page renders inline editing for draft/approved states, read-only for completed states
 - **lockForUpdate on stock writes** — Prevents race conditions when concurrent requests modify the same product stock
+- **AI two-step flow** — Prompt endpoint only parses intent; confirm endpoint executes — no accidental mutations

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
@@ -67,6 +68,14 @@ Route::group(['middleware' => 'auth'], function () {
         Route::patch('{salesOrder}/confirm', [SalesOrderController::class, 'confirm'])->name('confirm');
         Route::patch('{salesOrder}/fulfill', [SalesOrderController::class, 'fulfill'])->name('fulfill');
         Route::patch('{salesOrder}/cancel', [SalesOrderController::class, 'cancel'])->name('cancel');
+    });
+
+    // AI Assistant
+    Route::prefix('ai-assistant')->name('ai-assistant.')->group(function () {
+        Route::get('/', [AiAssistantController::class, 'index'])->name('index');
+        Route::post('/prompt', [AiAssistantController::class, 'prompt'])->name('prompt')->middleware('throttle:20,1');
+        Route::post('/confirm', [AiAssistantController::class, 'confirm'])->name('confirm');
+        Route::get('/history', [AiAssistantController::class, 'history'])->name('history');
     });
 
 });

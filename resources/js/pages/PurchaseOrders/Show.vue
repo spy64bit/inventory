@@ -229,7 +229,7 @@ interface PurchaseOrderItemForm {
 }
 
 const editForm = useForm<PurchaseOrderForm>({
-    supplier_id: props.purchaseOrder.supplier.id,
+    supplier_id: props.purchaseOrder.supplier?.id ?? null,
     notes: props.purchaseOrder.notes ?? '',
     items: props.purchaseOrder.items.map((item) => ({
         id: item.id,

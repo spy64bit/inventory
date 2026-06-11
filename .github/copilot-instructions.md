@@ -105,6 +105,54 @@ If the UI doesn't reflect a frontend change, the dev server / build likely needs
 - Prefer named routes (`route('product.index')`) and Wayfinder on the frontend over hardcoded URLs.
 - Use `php artisan make:*` generators (with `--no-interaction`) rather than hand-creating Laravel files.
 
+## AI Assistant Feature
+
+The app has a natural-language inventory assistant at `/ai-assistant`.
+
+### Architecture
+- **Agent:** `app/Ai/Agents/InventoryCommandAgent.php` — `#[Model('gemini-2.0-flash')]`, implements `HasStructuredOutput`, `Conversational`, `RemembersConversations`. Parses user intent into a structured JSON response.
+- **Controller:** `app/Http/Controllers/AiAssistantController.php` — catches `Laravel\Ai\Exceptions\RateLimitedException` → returns `429` JSON `{ error: '...' }`.
+- **Service:** `app/Services/AiAssistantService.php` — executes confirmed actions.
+- **Requests:** `AiPromptRequest` (validates `prompt` max:2000, nullable `conversation_id`), `AiConfirmRequest` (validates `action` enum + payload).
+- **Page:** `resources/js/pages/AiAssistant/Index.vue`
+
+### Routes (inside `auth` middleware group)
+```
+GET  /ai-assistant          → index   (Inertia page)
+POST /ai-assistant/prompt   → prompt  (throttle: 20/min)
+POST /ai-assistant/confirm  → confirm
+GET  /ai-assistant/history  → history
+```
+
+### Supported Actions
+`create_purchase_order`, `create_sales_order`, `add_product`, `edit_product`, `check_stock`, `unknown`
+
+- When action is `unknown`, the UI shows a "couldn't understand" message — no Confirm/Cancel buttons.
+
+### AI Provider
+- Default provider: `'gemini'` (`config/ai.php` → `'default'`).
+- Key: `GEMINI_API_KEY` in `.env`.
+
+### `useHttp` pattern (critical)
+`useHttp` data fields **must be initialised on the object**, not passed as the second argument to `.post()`. The correct pattern:
+```js
+const http = useHttp({ field1: '', field2: null });
+http.field1 = value;
+http.post('/endpoint', { onSuccess: ..., onError: ... }); // callbacks only as 2nd arg
+```
+Passing a data object as the second arg to `.post()` silently ignores it (it is treated as the options/callbacks object), causing the server to receive an empty body → 422.
+
+### Error Handling (frontend)
+Use `onHttpException` (not `onError`) to handle non-422 HTTP errors (e.g. 429 rate limit):
+```js
+http.post('/endpoint', {
+    onHttpException: (response) => {
+        const data = response.data ? JSON.parse(response.data) : null;
+        const msg = data?.error ?? 'Something went wrong.';
+    },
+});
+```
+
 ## Skills (see `AGENTS.md`)
 
 Relevant Laravel Boost skills are declared for this project:
