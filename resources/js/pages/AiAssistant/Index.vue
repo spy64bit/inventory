@@ -22,7 +22,11 @@ const confirmHttp = useHttp({
     action: '',
     confidence: null,
     supplier_id: null,
+    supplier_matched: null,
+    supplier_name: null,
     customer_id: null,
+    customer_matched: null,
+    customer_name: null,
     items: [],
     product: null,
     stock_check_ids: [],
@@ -90,6 +94,11 @@ function confirmAction(messageIndex, commandIndex) {
         onError: (errors) => {
             cmd.confirmed = false;
             cmd.error = errors?.message ?? 'Action failed. Please try again.';
+        },
+        onHttpException: (response) => {
+            cmd.confirmed = false;
+            const data = response.data ? JSON.parse(response.data) : null;
+            cmd.error = data?.error ?? 'Action failed. Please try again.';
         },
         onFinish: () => {
             scrollToBottom();
@@ -168,6 +177,17 @@ function resolvedProductName(item) {
     }
     return item.product_name;
 }
+
+const productFields = [
+    { key: 'name', label: 'Name' },
+    { key: 'sku', label: 'SKU' },
+    { key: 'cost_price', label: 'Cost Price' },
+    { key: 'selling_price', label: 'Selling Price' },
+    { key: 'category_id', label: 'Category' },
+    { key: 'unit', label: 'Unit' },
+    { key: 'id', label: 'Product ID' },
+];
+
 </script>
 
 <template>
@@ -271,13 +291,14 @@ function resolvedProductName(item) {
                                 <div v-if="cmd.product && ['add_product', 'edit_product'].includes(cmd.action)"
                                     class="p-4">
                                     <p class="text-base-content/60 mb-2 text-xs font-medium uppercase tracking-wide">
-                                        Product Details</p>
+                                        Product Details
+                                    </p>
                                     <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                                        <template v-for="(val, key) in cmd.product" :key="key">
-                                            <template v-if="val !== null && val !== undefined && String(val).length">
-                                                <span class="text-base-content/60 capitalize">{{ formatKey(key)
-                                                    }}</span>
-                                                <span>{{ val }}</span>
+                                        <template v-for="field in productFields" :key="field.key">
+                                            <template
+                                                v-if="cmd.product[field.key] !== null && cmd.product[field.key] !== undefined && String(cmd.product[field.key]).length">
+                                                <span class="text-base-content/60">{{ field.label }}</span>
+                                                <span>{{ cmd.product[field.key] }}</span>
                                             </template>
                                         </template>
                                     </div>
@@ -298,6 +319,28 @@ function resolvedProductName(item) {
                                     <div class="text-xs">
                                         <span class="font-medium">Could not match:</span>
                                         {{ cmd.unresolved.join(', ') }}. Please confirm or modify your request.
+                                    </div>
+                                </div>
+
+                                <!-- Supplier not found warning (non-blocking) -->
+                                <div v-if="cmd.action === 'create_purchase_order' && cmd.supplier_matched === false"
+                                    class="bg-warning/10 border-warning/20 mx-4 mb-4 flex items-start gap-2 rounded-lg border px-3 py-2">
+                                    <Icon icon="mdi:account-alert-outline" class="text-warning mt-0.5 shrink-0"
+                                        width="16" height="16" />
+                                    <div class="text-xs">
+                                        Supplier <span class="font-medium">'{{ cmd.supplier_name ?? 'unknown' }}'</span>
+                                        not found — the order will be created without a supplier assigned.
+                                    </div>
+                                </div>
+
+                                <!-- Customer not found warning (non-blocking) -->
+                                <div v-if="cmd.action === 'create_sales_order' && cmd.customer_matched === false"
+                                    class="bg-warning/10 border-warning/20 mx-4 mb-4 flex items-start gap-2 rounded-lg border px-3 py-2">
+                                    <Icon icon="mdi:account-alert-outline" class="text-warning mt-0.5 shrink-0"
+                                        width="16" height="16" />
+                                    <div class="text-xs">
+                                        Customer <span class="font-medium">'{{ cmd.customer_name ?? 'unknown' }}'</span>
+                                        not found — the order will be created without a customer assigned.
                                     </div>
                                 </div>
 

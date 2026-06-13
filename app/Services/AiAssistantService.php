@@ -92,12 +92,12 @@ class AiAssistantService
 
     /**
      * Update an existing product from the confirmed AI payload.
+     * The caller is responsible for pre-fetching and authorizing the model.
      *
      * @param  array{id: int, name?: string|null, sku?: string|null, cost_price?: float|null, selling_price?: float|null, category_id?: int|null, unit?: string|null}  $productData
      */
-    public function editProduct(array $productData): Product
+    public function editProduct(array $productData, Product $product): Product
     {
-        $product = Product::findOrFail($productData['id']);
 
         $updates = array_filter([
             'name' => $productData['name'] ?? null,
