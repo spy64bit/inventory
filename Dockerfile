@@ -15,6 +15,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx \
+    && ln -s /usr/local/lib/node_modules/corepack/dist/corepack.js /usr/local/bin/corepack \
     && corepack enable
 
 # PHP extensions required to boot Laravel (for Wayfinder generation) + build
