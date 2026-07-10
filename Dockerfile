@@ -17,9 +17,7 @@ COPY --from=node:22-alpine /usr/local/lib/node_modules /usr/local/lib/node_modul
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
-    && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx \
-    && ln -s /usr/local/lib/node_modules/corepack/dist/corepack.js /usr/local/bin/corepack \
-    && corepack enable
+    && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
 # PHP extensions required to boot Laravel (for Wayfinder generation) + build
 RUN apk add --no-cache --virtual .build-deps \
@@ -52,8 +50,8 @@ RUN composer install \
         --ignore-platform-reqs
 
 # Install JS dependencies
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile
+COPY package.json ./
+RUN npm install --no-audit --no-fund
 
 # Copy the rest of the source and produce the optimized autoloader
 COPY . .
@@ -61,7 +59,7 @@ RUN composer dump-autoload --no-dev --optimize --classmap-authoritative \
     && composer run-script post-autoload-dump
 
 # Build frontend assets (Wayfinder can now call `php artisan`)
-RUN pnpm run build
+RUN npm run build
 
 # ---------------------------------------------------------------------------
 # Stage 2: Runtime image — Nginx + PHP-FPM + Supervisor
