@@ -1,0 +1,47 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Dependencies (rebuilt inside the image)
+/vendor
+/node_modules
+
+# Build output (generated during the image build)
+/public/build
+/public/hot
+
+# Local environment & secrets
+.env
+.env.*
+!.env.example
+
+# Local runtime data
+/storage/*.key
+/storage/app/public/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+database/*.sqlite
+database/*.sqlite-journal
+
+# Tooling / IDE / OS noise
+.github
+.vscode
+.idea
+.fleet
+.phpunit.cache
+.phpunit.result.cache
+tests
+docs
+*.md
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Caches
+.php-cs-fixer.cache
+npm-debug.log
+pnpm-debug.log
+yarn-error.log
