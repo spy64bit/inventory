@@ -8,6 +8,9 @@
 # ---------------------------------------------------------------------------
 FROM php:8.3-fpm-alpine AS build
 
+# Shared libraries required by the Node binary copied from node:22-alpine
+RUN apk add --no-cache libstdc++ libgcc
+
 # Bring in a known-good Node 22 (Vite 8 requires >= 22.12) and Composer
 COPY --from=node:22-alpine /usr/local/bin/node /usr/local/bin/node
 COPY --from=node:22-alpine /usr/local/lib/node_modules /usr/local/lib/node_modules
