@@ -4,7 +4,7 @@ namespace App\Filters;
 
 use Illuminate\Database\Eloquent\Builder;
 
-class CustomerFIlter extends QueryFilter
+class CustomerFilter extends QueryFilter
 {
     protected function allowedSorts(): array
     {
