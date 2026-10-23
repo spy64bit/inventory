@@ -1,12 +1,16 @@
 # syntax=docker/dockerfile:1
 
+# Pin PHP to the patched 8.3.36 release, which is the fixed release for
+# CVE-2026-109618 and CVE-2026-109619. Do not use floating `php:8.3-*` tags.
+ARG PHP_VERSION=8.3.36
+
 # ---------------------------------------------------------------------------
 # Stage 1: Build stage — PHP (with extensions) + Node 22 + Composer
 #
 # The Wayfinder Vite plugin shells out to `php artisan wayfinder:generate`
 # during `vite build`, so PHP must be present alongside Node here.
 # ---------------------------------------------------------------------------
-FROM php:8.3-fpm-alpine AS build
+FROM php:${PHP_VERSION}-fpm-alpine AS build
 
 # Shared libraries required by the Node binary copied from node:22-alpine
 RUN apk add --no-cache libstdc++ libgcc
@@ -64,7 +68,7 @@ RUN npm run build
 # ---------------------------------------------------------------------------
 # Stage 2: Runtime image — Nginx + PHP-FPM + Supervisor
 # ---------------------------------------------------------------------------
-FROM php:8.3-fpm-alpine AS app
+FROM php:${PHP_VERSION}-fpm-alpine AS app
 
 # Runtime dependencies + PHP extensions
 RUN apk add --no-cache \
